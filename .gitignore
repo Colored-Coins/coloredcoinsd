@@ -1,0 +1,7 @@
+/static
+./test.*
+/node_modules
+/doc
+web.config
+test-reports.xml
+config-local.js

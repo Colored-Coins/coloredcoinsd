@@ -1,0 +1,49 @@
+{
+  "name": "colordcoinsd",
+  "version": "0.0.1",
+  "author": "",
+  "description": "abstraction for color operations",
+  "contributors": [],
+  "main": "./server.js",
+  "keywords": [],
+  "dependencies": {
+    "express": "4.10.4",
+    "body-parser": ">=1.9.0",
+    "node-rest-client": ">=1.0.3",
+    "q": ">=1.0.1",
+    "lodash": ">=2.4.1",
+    "swagger-node-express": "git://github.com/rottev/swagger-node.git#2.0.3-fix",
+    "swagger-validation": "~1.2",
+    "bs58check": "^1.0.3",
+    "bitcoinjs-lib": "^1.4.2",
+    "bitcore": "^0.9.5",
+    "bitcore-p2p": "^0.9.1",
+    "redis": "^0.12.1",
+    "cc-transaction": "^0.2.0",
+    "cc-assetid-encoder": "^0.2.0",
+    "bignumber.js": "^2.0.7",
+    "bitcoin": "git://github.com/rottev/node-bitcoin.git#master",
+    "le_node": "^0.2.1",
+    "log4js": "^0.6.22",
+    "aws-sdk": "^2.1.17"
+  },
+  "noAnalyze": true,
+  "engines": {
+    "node": ">=0.6"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": ">= 0.0.1",
+    "supertest": "^0.15.0"
+  },
+  "optionalDependencies": {},
+  "apidoc": {
+    "title": "ColordCoins api documentation",
+    "url": "http://localhost:8080"
+  },
+  "scripts": {
+    "start": "node .\\server.js",
+    "test": "mocha -R xunit > test-reports.xml",
+    "ci-full": "istanbul cover _mocha -- -R xunit > test-reports.xml"
+  }
+}
