@@ -1,0 +1,2367 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for coloredcoinsd/coluutils.js</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../prettify.css">
+    <link rel="stylesheet" href="../base.css">
+    <style type='text/css'>
+        div.coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class="header low">
+    <h1>Code coverage report for <span class="entity">coloredcoinsd/coluutils.js</span></h1>
+    <h2>
+        Statements: <span class="metric">11.58% <small>(49 / 423)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">0% <small>(0 / 142)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">3.03% <small>(2 / 66)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">11.89% <small>(49 / 412)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
+    </h2>
+    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">coloredcoinsd/</a> &#187; coluutils.js</div>
+</div>
+<div class="body">
+<pre><table class="coverage">
+<tr><td class="line-count">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572
+573
+574
+575
+576
+577
+578
+579
+580
+581
+582
+583
+584
+585
+586
+587
+588
+589
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+611
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+730
+731
+732
+733
+734
+735
+736
+737
+738
+739
+740
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+756
+757
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771
+772
+773
+774
+775</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">module.exports = (function () {
+    var config = require("./config");
+    var Client = require('node-rest-client').Client;
+    var Q = require("q");
+    var rpc = require("bitcoin");
+    var AWS = require("aws-sdk");
+    var crypto = require('crypto');
+    var bitcoinjs = require('bitcoinjs-lib');
+    var bn = require('bignumber.js');
+    var cc = require('cc-transaction');
+    var assetIdencoder = require('cc-assetid-encoder');
+    var _ = require('lodash')
+&nbsp;
+&nbsp;
+&nbsp;
+    var creds = {};
+    creds.AWSAKI = process.env.AWSAKI;
+    creds.AWSSSK = process.env.AWSSSK; 
+&nbsp;
+    var client = new Client();
+&nbsp;
+    var rpcclient = new rpc.Client(config.bitcoind);
+&nbsp;
+    function coluutils() {
+         client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET");
+        //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
+        //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
+&nbsp;
+    }
+&nbsp;
+    coluutils.sendRawTransaction = <span class="fstat-no" title="function not covered" >function sendRawTransaction(txHex) {     </span>
+<span class="cstat-no" title="statement not covered" >        return callservice('sendrawtransaction',txHex);       </span>
+    }
+&nbsp;
+    coluutils.getBlockCount = <span class="fstat-no" title="function not covered" >function getBlockCount() {     </span>
+<span class="cstat-no" title="statement not covered" >        return callservice('getblockcount');       </span>
+    }
+    coluutils.getTransactionListForAddress = <span class="fstat-no" title="function not covered" >function getTransactionListForAddress(address, no_confirmations) {</span>
+<span class="cstat-no" title="statement not covered" >      var deferred = Q.defer();</span>
+<span class="cstat-no" title="statement not covered" >      var confirmations = no_confirmations || 0;</span>
+<span class="cstat-no" title="statement not covered" >      callservice('listunspent', confirmations)</span>
+      .then(<span class="fstat-no" title="function not covered" >function(unspents) {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('got unspents')</span>
+<span class="cstat-no" title="statement not covered" >        var batch = []</span>
+<span class="cstat-no" title="statement not covered" >          unspents.forEach(<span class="fstat-no" title="function not covered" >function(unspent){</span></span>
+<span class="cstat-no" title="statement not covered" >              batch.push({method: "getrawtransaction", params:[unspent.txid,1]});</span>
+          })
+<span class="cstat-no" title="statement not covered" >          callwithbatch(batch)</span>
+          .then(<span class="fstat-no" title="function not covered" >function(transactions){</span>
+<span class="cstat-no" title="statement not covered" >              var useable = unspents.filter(<span class="fstat-no" title="function not covered" >function(unspent, i) {</span></span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                console.log("checking unspent "  + unspent.txid + ":" + unspent.vout)</span>
+<span class="cstat-no" title="statement not covered" >                var keep = true;</span>
+<span class="cstat-no" title="statement not covered" >                if(config.checkFinanaceValidty) {</span>
+<span class="cstat-no" title="statement not covered" >                  transactions[i].vout.some(<span class="fstat-no" title="function not covered" >function(vout, x){</span></span>
+<span class="cstat-no" title="statement not covered" >                    if(vout.scriptPubKey &amp;&amp; </span>
+                    vout.scriptPubKey.asm &amp;&amp; 
+                    vout.scriptPubKey.asm.indexOf("OP_RETURN") != -1)
+                    {
+                      // if its our rncoding then check the ouput isn't a color
+<span class="cstat-no" title="statement not covered" >                      if(!isOkToIssue(vout, unspent.vout)) {</span>
+<span class="cstat-no" title="statement not covered" >                         keep = false;</span>
+<span class="cstat-no" title="statement not covered" >                         console.log("input removed: " + vout.scriptPubKey.asm )</span>
+<span class="cstat-no" title="statement not covered" >                         return true;</span>
+                       }
+                    }
+<span class="cstat-no" title="statement not covered" >                    return x == (transactions[i].vout.length -1);</span>
+                  })
+                } // check validity
+<span class="cstat-no" title="statement not covered" >                unspent.transaction = transactions[i];</span>
+<span class="cstat-no" title="statement not covered" >                console.log(unspent.txid + " keep: " + keep)</span>
+<span class="cstat-no" title="statement not covered" >                return keep;</span>
+              }) //unsepnts.filter
+&nbsp;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >              console.log('resovle get inputs')</span>
+<span class="cstat-no" title="statement not covered" >              console.log(useable)</span>
+             // console.log(unspents)
+<span class="cstat-no" title="statement not covered" >              deferred.resolve(useable);</span>
+          })
+      })
+<span class="cstat-no" title="statement not covered" >       return deferred.promise;</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function callwithbatch(batch) {</span>
+<span class="cstat-no" title="statement not covered" >        var ret =[];</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer();</span>
+<span class="cstat-no" title="statement not covered" >        console.log('batching')</span>
+<span class="cstat-no" title="statement not covered" >        console.log(batch)</span>
+<span class="cstat-no" title="statement not covered" >        rpcclient.cmd(batch, <span class="fstat-no" title="function not covered" >function(err, data, placeholder, done){</span></span>
+<span class="cstat-no" title="statement not covered" >          console.log('still batching')</span>
+<span class="cstat-no" title="statement not covered" >            if(err) <span class="cstat-no" title="statement not covered" >ret.push(err)</span></span>
+            else <span class="cstat-no" title="statement not covered" >ret.push(data)</span>
+<span class="cstat-no" title="statement not covered" >            if(done) </span>
+              {
+<span class="cstat-no" title="statement not covered" >                console.log('batching done')</span>
+<span class="cstat-no" title="statement not covered" >                deferred.resolve(ret);</span>
+              }
+        })
+<span class="cstat-no" title="statement not covered" >         return deferred.promise;</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function isOkToIssue(vout, index)</span>
+    {
+<span class="cstat-no" title="statement not covered" >       var isok = false;</span>
+<span class="cstat-no" title="statement not covered" >        if (vout.scriptPubKey &amp;&amp; vout.scriptPubKey.type == 'nulldata') {</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >               console.log('found OP_RETURN')</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >               var hex = get_opreturn_data(vout.scriptPubKey.hex) </span>// remove op_return (0x6a) and data length?
+<span class="cstat-no" title="statement not covered" >                console.log(hex)</span>
+<span class="cstat-no" title="statement not covered" >               if (check_version(hex)) {</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('hex: ', hex)</span>
+<span class="cstat-no" title="statement not covered" >                 var ccdata = cc.createFromHex(hex).toJson()</span>
+<span class="cstat-no" title="statement not covered" >                 ccdata.payments.some(<span class="fstat-no" title="function not covered" >function(payment){</span></span>
+<span class="cstat-no" title="statement not covered" >                    if(payment.output != index)</span>
+<span class="cstat-no" title="statement not covered" >                      isok = true;</span>
+                    else
+<span class="cstat-no" title="statement not covered" >                      isok = false</span>
+<span class="cstat-no" title="statement not covered" >                    return !isok;</span>
+                 })
+               }
+             }
+<span class="cstat-no" title="statement not covered" >         return isok;</span>
+}
+&nbsp;
+var check_version = <span class="fstat-no" title="function not covered" >function (hex) {</span>
+<span class="cstat-no" title="statement not covered" > var version = hex.toString('hex').substring(0, 4)</span>
+<span class="cstat-no" title="statement not covered" > if (version.toLowerCase() == '4343') {</span>
+<span class="cstat-no" title="statement not covered" >   return true</span>
+ }
+<span class="cstat-no" title="statement not covered" > return false</span>
+}
+&nbsp;
+var get_opreturn_data = <span class="fstat-no" title="function not covered" >function (hex) {</span>
+<span class="cstat-no" title="statement not covered" >    return hex.substring(4)</span>
+}
+&nbsp;
+&nbsp;
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function callservice() {</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        var args = [].slice.call(arguments);</span>
+<span class="cstat-no" title="statement not covered" >        var command = args[0];</span>
+<span class="cstat-no" title="statement not covered" >        args.shift();</span>
+<span class="cstat-no" title="statement not covered" >        var batch = [{</span>
+            method: command,
+            params: args
+        }];
+&nbsp;
+&nbsp;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        rpcclient.cmd(batch, <span class="fstat-no" title="function not covered" >function(err){</span></span>
+<span class="cstat-no" title="statement not covered" >          if (err) {</span>
+<span class="cstat-no" title="statement not covered" >             console.log(err);</span>
+<span class="cstat-no" title="statement not covered" >              deferred.reject(new Error("failed: Status code was " + err));</span>
+          }
+          else {
+<span class="cstat-no" title="statement not covered" >            deferred.resolve(arguments[1]);</span>
+          }
+&nbsp;
+        });
+        
+       
+<span class="cstat-no" title="statement not covered" >        return deferred.promise;</span>
+    }
+&nbsp;
+&nbsp;
+    coluutils.validateIssueTrasaction = <span class="fstat-no" title="function not covered" >function validateIssueTrasaction(data) {</span>
+<span class="cstat-no" title="statement not covered" >      var deferred = Q.defer();</span>
+      // lets check if this is the first issue
+<span class="cstat-no" title="statement not covered" >       var key = sha1(sha256(data)).toString('hex');</span>
+       // send key to sevice to check if we already have it
+<span class="cstat-no" title="statement not covered" >        AWS.config.update({ accessKeyId: process.env.AWSAKI,</span>
+                        secretAccessKey: process.env.AWSSSK });
+&nbsp;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        var s3bucket = new AWS.S3({params: {Bucket: 'coloredcoin-assets'}});</span>
+<span class="cstat-no" title="statement not covered" >        s3bucket.headObject({Key: key}, <span class="fstat-no" title="function not covered" >function(error, headobject){</span></span>
+&nbsp;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            if(error &amp;&amp; error.code === "NotFound") { </span>
+              //all is well
+<span class="cstat-no" title="statement not covered" >              deferred.resolve(data);</span>
+            }
+            else {
+              // are we reissueing
+<span class="cstat-no" title="statement not covered" >              if(data.reissue) {</span>
+&nbsp;
+              }
+              else
+<span class="cstat-no" title="statement not covered" >                deferred.reject(new Error("cant reissue without correct assetId"));</span>
+          }   
+        });
+&nbsp;
+&nbsp;
+       // check with block explorer that transaction is ok
+       
+<span class="cstat-no" title="statement not covered" >       return deferred.promise;</span>
+    }
+&nbsp;
+    coluutils.createAssetFile = <span class="fstat-no" title="function not covered" >function createAssetFile(data) {</span>
+<span class="cstat-no" title="statement not covered" >      console.log(data);</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        var key = sha1(sha256(data)).toString('hex');</span>
+        
+<span class="cstat-no" title="statement not covered" >        AWS.config.update({ accessKeyId: process.env.AWSAKI,</span>
+                        secretAccessKey: process.env.AWSSSK });
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        var s3bucket = new AWS.S3({params: {Bucket: 'coloredcoin-assets'}});</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        s3bucket.upload({Key: key, Body:data, ContentType: 'application/json' }, <span class="fstat-no" title="function not covered" >function(err, data) {</span></span>
+<span class="cstat-no" title="statement not covered" >            if (err) {</span>
+<span class="cstat-no" title="statement not covered" >              console.log("Error uploading data: ", err);</span>
+<span class="cstat-no" title="statement not covered" >                deferred.reject(new Error("Status code was " + err));</span>
+            } else {
+             // console.log("Successfully uploaded data to coloredcoin-assets");
+<span class="cstat-no" title="statement not covered" >               deferred.resolve({ metadata: "https://s3.amazonaws.com/coloredcoin-assets/" + key });</span>
+            }
+        });
+               
+&nbsp;
+                
+<span class="cstat-no" title="statement not covered" >        return deferred.promise;</span>
+&nbsp;
+&nbsp;
+    }
+&nbsp;
+    coluutils.createIssueTransaction = <span class="fstat-no" title="function not covered" >function createIssueTransaction(metadata) {</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        tx = new bitcoinjs.Transaction();</span>
+        // find inputs to cover the issuence
+<span class="cstat-no" title="statement not covered" >        addInputsForIssueTransaction(tx, metadata).</span>
+        then(<span class="fstat-no" title="function not covered" >function(args){</span>
+<span class="cstat-no" title="statement not covered" >            tx = encodeColorScheme(args);</span>
+<span class="cstat-no" title="statement not covered" >            deferred.resolve({txHex: tx.toHex(), assetId: args.assetId || "0"});</span>
+        }).
+        catch(<span class="fstat-no" title="function not covered" >function(err) {</span>
+<span class="cstat-no" title="statement not covered" >          deferred.reject(err);</span>
+        });
+          
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return deferred.promise;</span>
+    }
+&nbsp;
+     coluutils.createSendAssetTansaction = <span class="fstat-no" title="function not covered" >function createSendAssetTansaction(metadata) {</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        tx = new bitcoinjs.Transaction();</span>
+        // find inputs to cover the issuence
+<span class="cstat-no" title="statement not covered" >        addInputsForSendTransaction(tx, metadata).</span>
+        then(<span class="fstat-no" title="function not covered" >function(tx){</span>
+<span class="cstat-no" title="statement not covered" >            console.log(tx)</span>
+<span class="cstat-no" title="statement not covered" >            deferred.resolve(tx);</span>
+        }).
+        catch(<span class="fstat-no" title="function not covered" >function(err) {</span>
+<span class="cstat-no" title="statement not covered" >          console.log(err)</span>
+<span class="cstat-no" title="statement not covered" >          deferred.reject(err);</span>
+        });
+          
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return deferred.promise;</span>
+    }
+&nbsp;
+    
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function encodeColorScheme(args) {</span>
+<span class="cstat-no" title="statement not covered" >      var metadata = JSON.parse(args.metadata)</span>
+<span class="cstat-no" title="statement not covered" >      var encoder = cc.newTransaction(0x4343, 0x01)</span>
+<span class="cstat-no" title="statement not covered" >      encoder.setLockStatus(!metadata.reissueable)</span>
+<span class="cstat-no" title="statement not covered" >      console.log("amount and div " + metadata.amount+" "+ metadata.divisibility)</span>
+<span class="cstat-no" title="statement not covered" >      encoder.setAmount(metadata.amount, metadata.divisibility);</span>
+<span class="cstat-no" title="statement not covered" >      if(metadata.metadata || metadata.rules) {</span>
+<span class="cstat-no" title="statement not covered" >         if(config.writemultisig) {</span>
+            // write the hashes to the first outpt and encode
+         }
+      }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      console.log(metadata.transfer)</span>
+<span class="cstat-no" title="statement not covered" >      if(metadata.transfer) {</span>
+<span class="cstat-no" title="statement not covered" >        metadata.transfer.forEach(<span class="fstat-no" title="function not covered" >function(transferobj, i){</span></span>
+<span class="cstat-no" title="statement not covered" >          console.log("payment " + transferobj.amount + " " + args.tx.outs.length)</span>
+<span class="cstat-no" title="statement not covered" >          encoder.addPayment(0, transferobj.amount, args.tx.outs.length)</span>
+<span class="cstat-no" title="statement not covered" >          args.tx.addOutput(transferobj.address, config.mindustvalue)</span>
+        })
+      }
+&nbsp;
+      //add op_return
+<span class="cstat-no" title="statement not covered" >      console.log("before encode done")</span>
+<span class="cstat-no" title="statement not covered" >      var buffer = encoder.encode();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      console.log("encoding done")</span>
+<span class="cstat-no" title="statement not covered" >      var ret = bitcoinjs.Script.fromChunks(</span>
+                              [
+                                bitcoinjs.opcodes.OP_RETURN,
+                                buffer.codeBuffer
+                              ]);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      args.tx.addOutput(ret, 0);</span>
+&nbsp;
+      // add change
+<span class="cstat-no" title="statement not covered" >      args.tx.addOutput(metadata.issueAddress , args.change);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      return args.tx;</span>
+&nbsp;
+    }
+&nbsp;
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getUnspentsByAddress(address)</span>
+    {
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer();</span>
+<span class="cstat-no" title="statement not covered" >        var args = {</span>
+                    path: { "address": address }
+&nbsp;
+                }
+<span class="cstat-no" title="statement not covered" >        client.methods.getaddressutxos(args, <span class="fstat-no" title="function not covered" >function (data, response) {</span></span>
+<span class="cstat-no" title="statement not covered" >            console.log(data);</span>
+<span class="cstat-no" title="statement not covered" >            if (response.statusCode == 200) {</span>
+<span class="cstat-no" title="statement not covered" >                console.log("getAddressBalance:(200) " + data);</span>
+<span class="cstat-no" title="statement not covered" >                deferred.resolve(data);</span>
+            }
+            else <span class="cstat-no" title="statement not covered" >if(data) {</span>
+<span class="cstat-no" title="statement not covered" >                console.log("rejecting with: " + response.statusCode + " " + data);</span>
+<span class="cstat-no" title="statement not covered" >                deferred.reject(new Error(response.statusCode + " " + data));</span>
+            }
+            else {
+<span class="cstat-no" title="statement not covered" >                console.log("rejecting with: " + response.statusCode);</span>
+<span class="cstat-no" title="statement not covered" >                deferred.reject(new Error("Status code was " + response.statusCode));</span>
+            }
+        }).on('error', <span class="fstat-no" title="function not covered" >function (err) {</span>
+<span class="cstat-no" title="statement not covered" >                console.log('something went wrong on the request', err.request.options);</span>
+<span class="cstat-no" title="statement not covered" >                deferred.reject(new Error("Status code was " + err.request.options));</span>
+            });
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return deferred.promise;</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function comupteCost(withfee, metadata ){</span>
+<span class="cstat-no" title="statement not covered" >       fee = withfee ? config.minfee : 0;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if(metadata.to &amp;&amp; metadata.to.length)</span>
+        {
+<span class="cstat-no" title="statement not covered" >          metadata.to.forEach(<span class="fstat-no" title="function not covered" >function(to) {</span></span>
+<span class="cstat-no" title="statement not covered" >            fee += config.mindustvalue</span>
+          })
+        }
+<span class="cstat-no" title="statement not covered" >        if(!metadata.rules &amp;&amp; !metadata.metadata)</span>
+<span class="cstat-no" title="statement not covered" >          return fee</span>
+        else
+<span class="cstat-no" title="statement not covered" >          return fee + config.writemultisig ? config.mindustvalue  : 0;</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function addInputsForSendTransaction(tx, metadata) {</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer()</span>
+<span class="cstat-no" title="statement not covered" >        var satoshiCost = comupteCost(true, metadata)</span>
+<span class="cstat-no" title="statement not covered" >        var totalInputs = { amount: 0 }</span>
+        
+<span class="cstat-no" title="statement not covered" >        try{</span>
+<span class="cstat-no" title="statement not covered" >        if(metadata.from) {</span>
+<span class="cstat-no" title="statement not covered" >          getUnspentsByAddress(metadata.from)</span>
+          .then(<span class="fstat-no" title="function not covered" >function(data){</span>
+<span class="cstat-no" title="statement not covered" >            var utxos = JSON.parse(data).utxos</span>
+<span class="cstat-no" title="statement not covered" >            console.log('got unspents for ' + metadata.from + " from block explorer")</span>
+<span class="cstat-no" title="statement not covered" >             var assetList = []</span>
+<span class="cstat-no" title="statement not covered" >             metadata.to.forEach(<span class="fstat-no" title="function not covered" >function(to) {</span></span>
+<span class="cstat-no" title="statement not covered" >                console.log(to.assetId)</span>
+<span class="cstat-no" title="statement not covered" >                if(!assetList[to.assetId]) </span>
+<span class="cstat-no" title="statement not covered" >                  assetList[to.assetId] = { amount: 0, addresses: [], input: 0, done: false, change: 0, encodeAmount: 0 }</span>
+<span class="cstat-no" title="statement not covered" >                assetList[to.assetId].amount += to.amount</span>
+<span class="cstat-no" title="statement not covered" >                assetList[to.assetId].encodeAmount = assetList[to.assetId].amount;</span>
+<span class="cstat-no" title="statement not covered" >                assetList[to.assetId].addresses.push({ address: to.address, amount: to.amount})              </span>
+             })
+&nbsp;
+<span class="cstat-no" title="statement not covered" >             console.log('finshed creating per asset list')</span>
+<span class="cstat-no" title="statement not covered" >             for( var asset in assetList)</span>
+             {
+<span class="cstat-no" title="statement not covered" >                console.log('working on asset: ' + asset)</span>
+<span class="cstat-no" title="statement not covered" >                console.log(utxos)</span>
+<span class="cstat-no" title="statement not covered" >                var assetUtxo = utxos.filter(<span class="fstat-no" title="function not covered" >function (element, index, array) {</span></span>
+<span class="cstat-no" title="statement not covered" >                  console.log('checking element ' + element )</span>
+<span class="cstat-no" title="statement not covered" >                   return element.assets.some(<span class="fstat-no" title="function not covered" >function(a){</span></span>
+<span class="cstat-no" title="statement not covered" >                      console.log('checking ' + a.assetId + ' and '+ asset)</span>
+<span class="cstat-no" title="statement not covered" >                      return (a.assetId == asset)</span>
+                   })
+                })
+<span class="cstat-no" title="statement not covered" >                if(assetUtxo) {</span>
+<span class="cstat-no" title="statement not covered" >                  console.log("have utxo list")</span>
+<span class="cstat-no" title="statement not covered" >                  var key = asset;</span>
+<span class="cstat-no" title="statement not covered" >                   if(!findBestMatchByNeededAssets (assetUtxo, assetList, key, tx, totalInputs, metadata)) {</span>
+<span class="cstat-no" title="statement not covered" >                      deferred.reject(new Error('Not Enough aseet of ' + key ))</span>
+<span class="cstat-no" title="statement not covered" >                      return;</span>
+                   }
+                }
+                else {
+<span class="cstat-no" title="statement not covered" >                  console.log("no utxo list")</span>
+<span class="cstat-no" title="statement not covered" >                  deferred.reject(new Error('Not output with asset ' + asset ))</span>
+                }
+&nbsp;
+             }
+<span class="cstat-no" title="statement not covered" >             console.log('reached encoder')</span>
+<span class="cstat-no" title="statement not covered" >             var encoder = cc.newTransaction(0x4343, 0x01)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >              var curentValueInSatoshi = _.sum(tx.ins, <span class="fstat-no" title="function not covered" >function(input) {</span> <span class="cstat-no" title="statement not covered" >return input.amount; </span>});</span>
+<span class="cstat-no" title="statement not covered" >              if(satoshiCost &gt; curentValueInSatoshi) {</span>
+<span class="cstat-no" title="statement not covered" >                  if(!insertSatoshiToTransaction(utxos, tx, (satoshiCost - curentValueInSatoshi), totalInputs, metadata)) {</span>
+<span class="cstat-no" title="statement not covered" >                     console.log('not enough satoshi in account for fees')</span>
+<span class="cstat-no" title="statement not covered" >                    deferred.reject(new Error('not enough satoshi in account for fees' ))</span>
+<span class="cstat-no" title="statement not covered" >                    return;</span>
+                  }
+              }
+&nbsp;
+             // done with the inputs now add outputs and encode
+<span class="cstat-no" title="statement not covered" >             if(metadata.rules || metadata.metadata){</span>
+              //TODO: HASHES so we maybe drop them in first output
+             }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >             for( asset in assetList)</span>
+             {
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                currentAsset = assetList[asset];</span>
+<span class="cstat-no" title="statement not covered" >                console.log('encodeing asset ' + asset)</span>
+<span class="cstat-no" title="statement not covered" >                if(!currentAsset.done) {</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('current asset state is bad ' + asset)</span>
+<span class="cstat-no" title="statement not covered" >                  deferred.reject(new Error('Not Enough aseet of ' + asset ))</span>
+<span class="cstat-no" title="statement not covered" >                  return</span>
+                }
+                
+<span class="cstat-no" title="statement not covered" >                var uniAssets = _.uniq(currentAsset.addresses, <span class="fstat-no" title="function not covered" >function(item) {</span> <span class="cstat-no" title="statement not covered" >return item.address }</span> )</span>
+<span class="cstat-no" title="statement not covered" >                console.log(uniAssets)</span>
+<span class="cstat-no" title="statement not covered" >                uniAssets.forEach(<span class="fstat-no" title="function not covered" >function(address) {</span></span>
+<span class="cstat-no" title="statement not covered" >                  console.log('adding output ' + (tx.outs ? tx.outs.length : 0) + " for address: " + address.address + " with value " + config.mindustvalue)</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('mapping to input ' + currentAsset.input + ' with amount ' + address.amount)</span>
+<span class="cstat-no" title="statement not covered" >                  encoder.addPayment(currentAsset.input, address.amount, (tx.outs ? tx.outs.length : 0))</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('putting input in transaction')</span>
+<span class="cstat-no" title="statement not covered" >                  tx.addOutput(address.address, config.mindustvalue);</span>
+<span class="cstat-no" title="statement not covered" >                  console.log(tx)</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('adding output ' + (tx.outs.length -1))</span>
+                })
+<span class="cstat-no" title="statement not covered" >                console.log('done adding colored outputs')</span>
+             }
+<span class="cstat-no" title="statement not covered" >            console.log("before using encoder")</span>
+<span class="cstat-no" title="statement not covered" >            try{</span>
+<span class="cstat-no" title="statement not covered" >              var buffer = encoder.encode();</span>
+            }
+            catch(e) {
+<span class="cstat-no" title="statement not covered" >              console.log(e)</span>
+            }
+<span class="cstat-no" title="statement not covered" >            console.log("encoding done")</span>
+<span class="cstat-no" title="statement not covered" >            var ret = bitcoinjs.Script.fromChunks(</span>
+                                    [
+                                      bitcoinjs.opcodes.OP_RETURN,
+                                      buffer.codeBuffer
+                                    ]);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            tx.addOutput(ret, 0);</span>
+<span class="cstat-no" title="statement not covered" >            var allOutputValues =  _.sum(tx.outs, <span class="fstat-no" title="function not covered" >function(output) {</span> <span class="cstat-no" title="statement not covered" >return output.value; </span>});</span>
+<span class="cstat-no" title="statement not covered" >            console.log('all inputs: ' + totalInputs.amount + ' all outputs: ' + allOutputValues);</span>
+<span class="cstat-no" title="statement not covered" >            var lastOutputValue = totalInputs.amount - (allOutputValues + metadata.fee)</span>
+<span class="cstat-no" title="statement not covered" >            if(lastOutputValue)</span>
+<span class="cstat-no" title="statement not covered" >              tx.addOutput(metadata.from, lastOutputValue);</span>
+<span class="cstat-no" title="statement not covered" >            console.log('success')</span>
+<span class="cstat-no" title="statement not covered" >            deferred.resolve(tx);</span>
+<span class="cstat-no" title="statement not covered" >            return;</span>
+          })
+        }
+      }
+      catch(e){
+<span class="cstat-no" title="statement not covered" >        console.log(e)</span>
+      }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return deferred.promise</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function findBestMatchByNeededAssets(utxos, assetList, key, tx, inputvalues, metadata) {</span>
+<span class="cstat-no" title="statement not covered" >      var foundAmount = 0</span>
+<span class="cstat-no" title="statement not covered" >      var sortedutxo = utxos;</span>
+<span class="cstat-no" title="statement not covered" >      for( asset in assetList) {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('findBestMatchByNeededAssets checking asset: ' + asset +' key is ' + key )</span>
+<span class="cstat-no" title="statement not covered" >        sortedutxo =_.sortBy(sortedutxo, <span class="fstat-no" title="function not covered" >function(utxo) {</span></span>
+<span class="cstat-no" title="statement not covered" >          console.log(utxo.assets)</span>
+<span class="cstat-no" title="statement not covered" >            utxo.score = 0;</span>
+<span class="cstat-no" title="statement not covered" >            utxo.assets.forEach(<span class="fstat-no" title="function not covered" >function(a){</span></span>
+<span class="cstat-no" title="statement not covered" >                console.log('about to asset ' + asset +' to asset ' +a.assetId )</span>
+<span class="cstat-no" title="statement not covered" >                if(((a.assetId == asset) &amp;&amp; !assetList[asset].done)) { <span class="cstat-no" title="statement not covered" >console.log('score += 1'); <span class="cstat-no" title="statement not covered" ></span>utxo.score += 1; </span>}</span>
+<span class="cstat-no" title="statement not covered" >                if(((a.assetId == asset) &amp;&amp; !assetList[asset].done &amp;&amp; a.amount &gt;= assetList[key].amount)) { <span class="cstat-no" title="statement not covered" >console.log('score' + utxo.score); <span class="cstat-no" title="statement not covered" ></span>utxo.score += 100000; </span>}</span>
+<span class="cstat-no" title="statement not covered" >                if(a.assetId == key) {<span class="cstat-no" title="statement not covered" >console.log('amount += ' + a.amount); <span class="cstat-no" title="statement not covered" ></span>foundAmount += a.amount;} </span></span>
+            })
+<span class="cstat-no" title="statement not covered" >            console.log('score is ' + utxo.score)</span>
+<span class="cstat-no" title="statement not covered" >            return utxo.score;</span>
+        })
+      }
+<span class="cstat-no" title="statement not covered" >      console.log('sorted utxos by score and assets')</span>
+      // do we have enough for the transfer
+<span class="cstat-no" title="statement not covered" >      if(foundAmount &lt; assetList[key].amount) {</span>
+<span class="cstat-no" title="statement not covered" >         console.log('not enough amount')</span>
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+      }
+      
+<span class="cstat-no" title="statement not covered" >      console.log('adding inputs by assets and amounts')    </span>
+<span class="cstat-no" title="statement not covered" >      sortedutxo.some(<span class="fstat-no" title="function not covered" >function(utxo) {</span></span>
+<span class="cstat-no" title="statement not covered" >        console.log('interating over ' + utxo )</span>
+<span class="cstat-no" title="statement not covered" >          utxo.assets.forEach(<span class="fstat-no" title="function not covered" >function(asset) {</span></span>
+<span class="cstat-no" title="statement not covered" >            try{</span>
+<span class="cstat-no" title="statement not covered" >              console.log('maybe adding input for ' + asset.assetId )</span>
+<span class="cstat-no" title="statement not covered" >              if(assetList[asset.assetId] &amp;&amp; !assetList[asset.assetId].done) {</span>
+<span class="cstat-no" title="statement not covered" >                 console.log('probably adding input for ' + asset.assetId )</span>
+<span class="cstat-no" title="statement not covered" >                 console.log(assetList[asset.assetId].amount + ' ' + asset.amount)</span>
+<span class="cstat-no" title="statement not covered" >                if(assetList[asset.assetId].amount &lt;= asset.amount) {</span>
+<span class="cstat-no" title="statement not covered" >                    console.log('setting change')</span>
+<span class="cstat-no" title="statement not covered" >                    assetList[asset.assetId].change = asset.amount - assetList[asset.assetId].amount</span>
+<span class="cstat-no" title="statement not covered" >                     console.log('setting done')</span>
+<span class="cstat-no" title="statement not covered" >                    assetList[asset.assetId].done = true</span>
+<span class="cstat-no" title="statement not covered" >                    console.log('adding input')</span>
+<span class="cstat-no" title="statement not covered" >                    tx.addInput(utxo.txid, utxo.index);</span>
+<span class="cstat-no" title="statement not covered" >                    console.log('setting input value ' + utxo.value)</span>
+<span class="cstat-no" title="statement not covered" >                    inputvalues.amount += utxo.value</span>
+<span class="cstat-no" title="statement not covered" >                     console.log('setting input in asset list')</span>
+<span class="cstat-no" title="statement not covered" >                    assetList[asset.assetId].input = tx.ins.length -1;</span>
+<span class="cstat-no" title="statement not covered" >                    if(metadata.flags.injectPreviousOutput) {</span>
+<span class="cstat-no" title="statement not covered" >                      tx.ins[tx.ins.length -1].script = </span>
+                      bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
+                    }
+                }
+                else {
+<span class="cstat-no" title="statement not covered" >                  assetList[asset.assetId].amount -= asset.amount;</span>
+                } 
+              }
+              else
+<span class="cstat-no" title="statement not covered" >                console.log('not adding input for ' + asset.assetId )</span>
+            }
+            catch(e) { <span class="cstat-no" title="statement not covered" >console.log(e) }</span>
+            })
+&nbsp;
+<span class="cstat-no" title="statement not covered" >          console.log('returning ' + assetList[key].done )</span>
+<span class="cstat-no" title="statement not covered" >          return assetList[key].done;</span>
+      })
+<span class="cstat-no" title="statement not covered" >      console.log('done with findBestMatchByNeededAssets')</span>
+<span class="cstat-no" title="statement not covered" >      return true;</span>
+      /*sortedutxo.forEach(function(utxo){
+&nbsp;
+      })*/
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function addInputsForIssueTransaction(tx, metadata) {</span>
+<span class="cstat-no" title="statement not covered" >        var deferred = Q.defer()</span>
+<span class="cstat-no" title="statement not covered" >        var metaObj = JSON.parse(metadata)</span>
+<span class="cstat-no" title="statement not covered" >        var assetId = ''</span>
+        
+<span class="cstat-no" title="statement not covered" >        console.log("======================")</span>
+<span class="cstat-no" title="statement not covered" >        console.log(metaObj)</span>
+        //simple mode
+<span class="cstat-no" title="statement not covered" >        if(metaObj.financeOutput) {</span>
+          /*if(metaObj.financeOutput.scriptPubKey &amp;&amp; 
+                  metaObj.financeOutput.scriptPubKey.asm &amp;&amp; 
+                  metaObj.financeOutput.scriptPubKey.asm.indexOf("OP_RETURN") != -1)
+          {
+              deferred.reject(new Error(''))
+          }*/
+&nbsp;
+<span class="cstat-no" title="statement not covered" >          current = new bn(metaObj.financeOutput.value)</span>
+<span class="cstat-no" title="statement not covered" >          cost = new bn(getIssuenceCost(metaObj))</span>
+          
+<span class="cstat-no" title="statement not covered" >          console.log("adding utxo from api")</span>
+<span class="cstat-no" title="statement not covered" >          tx.addInput(metaObj.financeOutputTxid, metaObj.financeOutput.n)</span>
+<span class="cstat-no" title="statement not covered" >          if(metaObj.flags.injectPreviousOutput) {</span>
+<span class="cstat-no" title="statement not covered" >               tx.ins[tx.ins.length -1].script = </span>
+                  bitcoinjs.Script.fromHex (metaObj.financeOutput.scriptPubKey.hex)
+          }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >          opts = {</span>
+              'cc_metadata': [{
+                'type': 'issuance',
+                'lockStatus': !metaObj.reissueable
+              }],
+              'vin': [{
+                'txid': metaObj.financeOutputTxid,
+                'vout': metaObj.financeOutput.n
+                //'scriptSig': {
+                //  'asm': '3045022100daf8f8d65ea908a28d90f700dc932ecb3b68f402b04ba92f987e8abd7080fcad02205ce81b698b8013b86813c9edafc9e79997610626c9dd1bfb49f60abee9daa43801 029b622e5f0f87f2be9f23c4d82f818a73e258a11c26f01f73c8b595042507a574',
+                //}
+                //'address': metaObj.financeOutput.scriptPubKey.addresses[0]
+              }]
+            };
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            if(opts.cc_metadata[0].lockStatus)</span>
+<span class="cstat-no" title="statement not covered" >                scriptSig.asm = metaObj.financeOutput.scriptPubKey.asm;</span>
+            else {
+<span class="cstat-no" title="statement not covered" >                console.log("++++++sending pedo address : " + metaObj.financeOutput.scriptPubKey.addresses[0])</span>
+<span class="cstat-no" title="statement not covered" >                opts.vin[0].address = metaObj.financeOutput.scriptPubKey.addresses[0]</span>
+              }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >          console.log('encoding asset: ')</span>
+<span class="cstat-no" title="statement not covered" >          console.log(opts)</span>
+<span class="cstat-no" title="statement not covered" >          assetId = assetIdencoder(opts)</span>
+<span class="cstat-no" title="statement not covered" >          console.log('assetId: ' + assetId)</span>
+<span class="cstat-no" title="statement not covered" >          deferred.resolve({tx: tx, metadata: metadata, change: (toSatoshi(current) - cost), assetId: assetId})</span>
+<span class="cstat-no" title="statement not covered" >          return deferred.promise; </span>
+        }
+&nbsp;
+&nbsp;
+        // tempararly work with bitcoind though 
+        // check there is no op_return in tx for the utxo we are about to use
+        // TODO: need to check if we can decode it and its ours
+<span class="cstat-no" title="statement not covered" >        getUnspentsByAddress(metaObj.issueAddress)</span>
+        .then(<span class="fstat-no" title="function not covered" >function (data) {</span>
+<span class="cstat-no" title="statement not covered" >            var utxos = JSON.parse(data).utxos</span>
+<span class="cstat-no" title="statement not covered" >            console.log('got unspents for ' + metaObj.issueAddress + " from block explorer")</span>
+            //add to transaction enough inputs so we can cover the cost
+            //send change if any back to us
+<span class="cstat-no" title="statement not covered" >            var current = new bn(0);</span>
+<span class="cstat-no" title="statement not covered" >            cost = new bn(getIssuenceCost(metaObj));</span>
+<span class="cstat-no" title="statement not covered" >            change = new bn(0)</span>
+<span class="cstat-no" title="statement not covered" >            var hasEnoughEquity = utxos.some(<span class="fstat-no" title="function not covered" >function (utxo) {</span></span>
+<span class="cstat-no" title="statement not covered" >              if(utxo.assets.length == 0) {</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('current amount ' + utxo.value + " needed " + cost)</span>
+<span class="cstat-no" title="statement not covered" >                  tx.addInput(utxo.txid, utxo.index)</span>
+<span class="cstat-no" title="statement not covered" >                  current = current.add(utxo.value)</span>
+<span class="cstat-no" title="statement not covered" >                  if(metaObj.flags.injectPreviousOutput) {</span>
+<span class="cstat-no" title="statement not covered" >                    tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)</span>
+                  }  
+&nbsp;
+              }
+<span class="cstat-no" title="statement not covered" >              console.log(current + " " + cost + " " + (current &gt;= cost))</span>
+<span class="cstat-no" title="statement not covered" >              return current.comparedTo(cost) &gt;= 0;</span>
+            })
+<span class="cstat-no" title="statement not covered" >            console.log("hasEnoughEquity: " + hasEnoughEquity)</span>
+<span class="cstat-no" title="statement not covered" >            if(!hasEnoughEquity){</span>
+<span class="cstat-no" title="statement not covered" >               return {success: false} </span>
+            }
+ 
+           /* for(transaction in transactions) {
+               if(toSatoshi(current).comparedTo(cost) &gt;= 0) {
+                  if(toSatoshi(current).comparedTo(cost) &gt; 0) 
+                    {
+                     // tx.addOutput(metaObj.issueAddress, toSatoshi(current) - cost);
+                     change = toSatoshi(current) - cost;
+                    }
+                  break;
+                }
+&nbsp;
+                tx.addInput(transactions[transaction].txid, transactions[transaction].vout);
+                if(metaObj.flags.injectPreviousOutput) {
+                    tx.ins[tx.ins.length -1].script = 
+                    bitcoinjs.Script.fromHex (transactions[transaction].transaction.vout[transactions[transaction].vout].scriptPubKey.hex)
+                }
+                current = current.plus( transactions[transaction].amount );
+            }*/
+<span class="cstat-no" title="statement not covered" >            change = current - cost</span>
+<span class="cstat-no" title="statement not covered" >            console.log('finished adding inputs to tx')</span>
+<span class="cstat-no" title="statement not covered" >            return { success: (toSatoshi(current).comparedTo(cost) &gt; 0), change: change};</span>
+        }).
+        then(<span class="fstat-no" title="function not covered" >function(state) {</span>
+<span class="cstat-no" title="statement not covered" >          console.log('return the tx to encode')</span>
+<span class="cstat-no" title="statement not covered" >          if(state.success) <span class="cstat-no" title="statement not covered" >deferred.resolve({tx: tx, metadata: metadata, change: state.change, assetId: assetId});</span></span>
+          else  <span class="cstat-no" title="statement not covered" >deferred.reject(new Error("Not enough funds to cover issuence"));</span>
+        }).
+        catch(<span class="fstat-no" title="function not covered" >function(error) {</span>
+<span class="cstat-no" title="statement not covered" >            console.log(error) </span>
+        });
+&nbsp;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return deferred.promise;</span>
+    }
+&nbsp;
+    //TODO: check if we can find the sum in mul
+<span class="fstat-no" title="function not covered" >    function insertSatoshiToTransaction(utxos, tx, missing, inputsValue, metadata) </span>
+    {
+<span class="cstat-no" title="statement not covered" >      console.log("missing: " +  missing);</span>
+<span class="cstat-no" title="statement not covered" >      var paymentDone = false;</span>
+<span class="cstat-no" title="statement not covered" >      var missingbn = new bn(missing)</span>
+<span class="cstat-no" title="statement not covered" >      var currentAmount = new bn(0)</span>
+<span class="cstat-no" title="statement not covered" >      if(metadata.financeOutput &amp;&amp; metadata.financeOutputTxid) {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('finance sent through api with value ' + toSatoshi(new bn(metadata.financeOutput.value)).toNumber() )</span>
+<span class="cstat-no" title="statement not covered" >        console.log(toSatoshi(new bn(metadata.financeOutput.value)))</span>
+<span class="cstat-no" title="statement not covered" >        console.log(missingbn)</span>
+<span class="cstat-no" title="statement not covered" >        if(toSatoshi(new bn(metadata.financeOutput.value)).minus(missingbn) &gt;= 0)</span>
+        {
+          //TODO: check there is no asset here
+<span class="cstat-no" title="statement not covered" >           console.log('funding tx ' + metadata.financeOutputTxid)</span>
+<span class="cstat-no" title="statement not covered" >           tx.addInput( metadata.financeOutputTxid, metadata.financeOutput.n)</span>
+<span class="cstat-no" title="statement not covered" >           inputsValue.amount += toSatoshi(new bn(metadata.financeOutput.value)).toNumber() </span>
+<span class="cstat-no" title="statement not covered" >           paymentDone = true;</span>
+<span class="cstat-no" title="statement not covered" >           return paymentDone;</span>
+&nbsp;
+        }
+      }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >       var hasEnoughEquity = utxos.some(<span class="fstat-no" title="function not covered" >function (utxo) {</span></span>
+<span class="cstat-no" title="statement not covered" >              if(utxo.assets.length == 0) {</span>
+<span class="cstat-no" title="statement not covered" >                  console.log('current amount ' + utxo.value + " needed " + missing)</span>
+<span class="cstat-no" title="statement not covered" >                  tx.addInput(utxo.txid, utxo.index)</span>
+<span class="cstat-no" title="statement not covered" >                  currentAmount = currentAmount.add(utxo.value)</span>
+<span class="cstat-no" title="statement not covered" >                  if(metaObj.flags.injectPreviousOutput) {</span>
+<span class="cstat-no" title="statement not covered" >                    tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)</span>
+                  }  
+&nbsp;
+              }
+<span class="cstat-no" title="statement not covered" >              return currentAmount.comparedTo(missingbn) &gt;= 0 </span>
+            })
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      return hasEnoughEquity;</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getIssuenceCost(metaobj) {</span>
+<span class="cstat-no" title="statement not covered" >       return getTotalIssuenceCost(metaobj, true); </span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getTotalOuputValue(metaobj) {</span>
+<span class="cstat-no" title="statement not covered" >      return getTotalIssuenceCost(metaobj, false);</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getTotalIssuenceCost(metaobj, withfee)</span>
+    {
+<span class="cstat-no" title="statement not covered" >        fee = withfee ? config.minfee : 0;</span>
+      // simple case where there aren't any mints or bill sizes
+       // if(!bills &amp;&amp; !mints) {
+<span class="cstat-no" title="statement not covered" >        if(metaobj.transfer &amp;&amp; metaobj.transfer.length)</span>
+        {
+<span class="cstat-no" title="statement not covered" >          metaobj.transfer.forEach(<span class="fstat-no" title="function not covered" >function(to) {</span></span>
+<span class="cstat-no" title="statement not covered" >            fee += config.mindustvalue</span>
+          })
+        }
+<span class="cstat-no" title="statement not covered" >        if(!metaobj.rules &amp;&amp; !metaobj.metadata)</span>
+<span class="cstat-no" title="statement not covered" >          return fee</span>
+        else
+<span class="cstat-no" title="statement not covered" >          return fee + config.writemultisig ? config.mindustvalue  : 0;</span>
+       // }
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getNextOutputValue(metadata) {</span>
+     // if(!bills &amp;&amp; !mints)
+<span class="cstat-no" title="statement not covered" >        return new bn(getTotalOuputValue(metadata));</span>
+     // else
+      //  throw new Error("Cant find next output value");
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function addOutputs(tx, metadata) {</span>
+<span class="cstat-no" title="statement not covered" >      var deferred = Q.defer();</span>
+<span class="cstat-no" title="statement not covered" >      var total_out = new bn(getTotalOuputValue(metadata));</span>
+<span class="cstat-no" title="statement not covered" >      while(total_out.toNumber()) {</span>
+<span class="cstat-no" title="statement not covered" >            nextOutputValue = getNextOutputValue(metadata);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            total_out = total_out.minus(nextOutputValue);</span>
+      }
+&nbsp;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      return deferred.promise;</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function addOutput() {</span>
+&nbsp;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function sha256(buffer) {</span>
+<span class="cstat-no" title="statement not covered" >        return crypto.createHash('sha256').update(buffer).digest()</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function sha1(buffer) {</span>
+<span class="cstat-no" title="statement not covered" >        return crypto.createHash('sha1').update(buffer).digest()</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function toSatoshi(btc) {</span>
+<span class="cstat-no" title="statement not covered" >      return btc.mul(100000000);</span>
+    }
+&nbsp;
+    coluutils();
+&nbsp;
+    return coluutils;
+})();</pre></td></tr>
+</table></pre>
+
+</div>
+<div class="footer">
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Jun 18 2015 16:03:03 GMT+0300 (IDT)</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
