@@ -92,7 +92,7 @@ module.exports = (function () {
             }
         };
 
-        swagger.addGet(getAssetIssueMetadata);
+        swagger.addGet(getAssetMetadata);
 
         // endpoint to get all adresses holding an asset
          var getHoldingAdressesForAsset = {
