@@ -1,15 +1,17 @@
+if(process.env.NODE_ENV && process.env.NODE_ENV == 'QA')
+  console.log=function() {}
+
 var express = require('express');
 var config = require("./config");
 var bodyParser = require('body-parser');
-var controllers = require('./controllers');
+
 var fs = require('fs');
-//var stylus = require('stylus');
-//var nib = require('nib');
-//var api = require('./api');
 var log4js = require('log4js');
 
-var logger = log4js.getLogger('console');
+var consoleLogger = log4js.getLogger('console');
 var logentries = require('le_node');
+var controllers = require('./controllers');
+var _ = require('lodash')
 
 var log = logentries.logger({
   token: process.env.LETOKEN
@@ -20,36 +22,41 @@ var log = logentries.logger({
 if(fs.existsSync('/var/log/nodejs.log')) {
   log4js.loadAppender('file');
   log4js.addAppender(log4js.appenders.file('/var/log/nodejs.log'), 'eblog');
-  logger = log4js.getLogger('eblog');
-
+  consoleLogger = log4js.getLogger('eblog');
+}
+//console.log(process.env.NODE_ENV)
+if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
+  console.log=(function() {
+    var orig=console.log;
+    return function() {
+        consoleLogger.debug.apply(consoleLogger, Array.prototype.slice.call(arguments));
+        if(process.env.LETOKEN)
+        {
+          var args =  Array.prototype.slice.call(arguments);
+          args.unshift('info');
+          log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.clone(args, true) : args);
+        }
+    };
+  })();  
 }
 
-console.log=(function() {
-  var orig=console.log;
-  return function() {
-      logger.debug.apply(logger, Array.prototype.slice.call(arguments));
-      if(process.env.LETOKEN)
-      {
-        var args =  Array.prototype.slice.call(arguments);
-        args.unshift('info');
-        log.log.apply(log, args);
-      }
-  };
-})();  
-
-console.error=(function() {
+if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
+  console.error=(function() {
   var orig=console.error;
   return function() {
-       logger.error.apply(logger, Array.prototype.slice.call(arguments));
+      consoleLogger.error.apply(consoleLogger, Array.prototype.slice.call(arguments));
        if(process.env.LETOKEN)
       {
         var args =  Array.prototype.slice.call(arguments);
         args.unshift('err');
         orig(args);
-        log.log.apply(log, args);
+        log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.clone(args, true) : args);
       }
-  };
-})();  
+    };
+  })();
+}
+
+  
 
 if(!process.env.LETOKEN) {
   console.error("No Logentries token found in enviorment");

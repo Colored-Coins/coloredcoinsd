@@ -22,7 +22,9 @@ module.exports = (function () {
     var rpcclient = new rpc.Client(config.bitcoind);
 
     function coluutils() {
-         client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET");
+         client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
+         client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&blockHeight=${blockheight}", "GET")
+         client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
         //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
         //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
 
@@ -204,7 +206,8 @@ var get_opreturn_data = function (hex) {
       console.log(data);
         var deferred = Q.defer();
 
-        var key = sha1(sha256(data)).toString('hex');
+
+        /*var key = sha1(sha256(data)).toString('hex');
         
         AWS.config.update({ accessKeyId: process.env.AWSAKI,
                         secretAccessKey: process.env.AWSSSK });
@@ -219,7 +222,7 @@ var get_opreturn_data = function (hex) {
              // console.log("Successfully uploaded data to coloredcoin-assets");
                deferred.resolve({ metadata: "https://s3.amazonaws.com/coloredcoin-assets/" + key });
             }
-        });
+        });*/
                
 
                 
@@ -271,7 +274,7 @@ var get_opreturn_data = function (hex) {
 
 
     function encodeColorScheme(args) {
-      var metadata = JSON.parse(args.metadata)
+      var metadata = args.metadata
       var encoder = cc.newTransaction(0x4343, 0x01)
       encoder.setLockStatus(!metadata.reissueable)
       console.log("amount and div " + metadata.amount+" "+ metadata.divisibility)
@@ -312,13 +315,67 @@ var get_opreturn_data = function (hex) {
     }
 
 
+    coluutils.uploadMetadata =  function uploadMetadata(metadata) 
+    {
+      console.log('uploadMetadata');
+      var deferred = Q.defer();
+
+
+      console.log(metadata.metadata)
+      if(!metadata.metadata && !metadata.rules) {
+        console.log('uploadMetadata: no metadata and no rules')
+        deferred.resolve(metadata);
+        return deferred.promise;
+      }
+        var metafile = {}
+        if(metadata.metadata)
+          metafile.data = metadata.metadata
+        if(metadata.rules)
+          metafile.rules =metadata.rules
+            
+        var args = {
+                    path: { "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImV4cCI6IjIwMTYtMDUtMzBUMjI6MzY6MDUuMzMxWiJ9.hNTUgkQzuMwcFNadg49bOeLUA5hzuHAQWc8le40PNus" },
+                    data : {
+                      "metadata": metafile
+                    },
+                    headers:{"Content-Type": "application/json"} 
+
+                }
+        client.methods.upload(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("upload:(200) " + data);
+                metadata.sha1 = data.torrentHash
+                metadata.sha2 = data.sha2
+                deferred.resolve(metadata);
+            }
+            else if(data) {
+                console.log("rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+
+        return deferred.promise;
+
+    }
+
     function getUnspentsByAddress(address)
     {
         var deferred = Q.defer();
         var args = {
-                    path: { "address": address }
-
+                    path: { "address": address },
+                    headers:{"Content-Type": "application/json"} 
                 }
+                          try{
+
+      
         client.methods.getaddressutxos(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
@@ -337,6 +394,8 @@ var get_opreturn_data = function (hex) {
                 console.log('something went wrong on the request', err.request.options);
                 deferred.reject(new Error("Status code was " + err.request.options));
             });
+      }
+      catch(e) { console.log(e) }
 
         return deferred.promise;
     }
@@ -549,50 +608,50 @@ var get_opreturn_data = function (hex) {
 
     function addInputsForIssueTransaction(tx, metadata) {
         var deferred = Q.defer()
-        var metaObj = JSON.parse(metadata)
+        //var metadata = JSON.parse(metadata)
         var assetId = ''
         
         console.log("======================")
-        console.log(metaObj)
+        console.log(metadata)
         //simple mode
-        if(metaObj.financeOutput) {
-          /*if(metaObj.financeOutput.scriptPubKey && 
-                  metaObj.financeOutput.scriptPubKey.asm && 
-                  metaObj.financeOutput.scriptPubKey.asm.indexOf("OP_RETURN") != -1)
+        if(metadata.financeOutput) {
+          /*if(metadata.financeOutput.scriptPubKey && 
+                  metadata.financeOutput.scriptPubKey.asm && 
+                  metadata.financeOutput.scriptPubKey.asm.indexOf("OP_RETURN") != -1)
           {
               deferred.reject(new Error(''))
           }*/
 
-          current = new bn(metaObj.financeOutput.value)
-          cost = new bn(getIssuenceCost(metaObj))
+          current = new bn(metadata.financeOutput.value)
+          cost = new bn(getIssuenceCost(metadata))
           
           console.log("adding utxo from api")
-          tx.addInput(metaObj.financeOutputTxid, metaObj.financeOutput.n)
-          if(metaObj.flags.injectPreviousOutput) {
+          tx.addInput(metadata.financeOutputTxid, metadata.financeOutput.n)
+          if(metadata.flags.injectPreviousOutput) {
                tx.ins[tx.ins.length -1].script = 
-                  bitcoinjs.Script.fromHex (metaObj.financeOutput.scriptPubKey.hex)
+                  bitcoinjs.Script.fromHex (metadata.financeOutput.scriptPubKey.hex)
           }
 
           opts = {
               'cc_metadata': [{
                 'type': 'issuance',
-                'lockStatus': !metaObj.reissueable
+                'lockStatus': !metadata.reissueable
               }],
               'vin': [{
-                'txid': metaObj.financeOutputTxid,
-                'vout': metaObj.financeOutput.n
+                'txid': metadata.financeOutputTxid,
+                'vout': metadata.financeOutput.n
                 //'scriptSig': {
                 //  'asm': '3045022100daf8f8d65ea908a28d90f700dc932ecb3b68f402b04ba92f987e8abd7080fcad02205ce81b698b8013b86813c9edafc9e79997610626c9dd1bfb49f60abee9daa43801 029b622e5f0f87f2be9f23c4d82f818a73e258a11c26f01f73c8b595042507a574',
                 //}
-                //'address': metaObj.financeOutput.scriptPubKey.addresses[0]
+                //'address': metadata.financeOutput.scriptPubKey.addresses[0]
               }]
             };
 
             if(opts.cc_metadata[0].lockStatus)
-                scriptSig.asm = metaObj.financeOutput.scriptPubKey.asm;
+                scriptSig.asm = metadata.financeOutput.scriptPubKey.asm;
             else {
-                console.log("++++++sending pedo address : " + metaObj.financeOutput.scriptPubKey.addresses[0])
-                opts.vin[0].address = metaObj.financeOutput.scriptPubKey.addresses[0]
+                console.log("++++++sending pedo address : " + metadata.financeOutput.scriptPubKey.addresses[0])
+                opts.vin[0].address = metadata.financeOutput.scriptPubKey.addresses[0]
               }
 
           console.log('encoding asset: ')
@@ -607,21 +666,21 @@ var get_opreturn_data = function (hex) {
         // tempararly work with bitcoind though 
         // check there is no op_return in tx for the utxo we are about to use
         // TODO: need to check if we can decode it and its ours
-        getUnspentsByAddress(metaObj.issueAddress)
+        getUnspentsByAddress(metadata.issueAddress)
         .then(function (data) {
             var utxos = JSON.parse(data).utxos
-            console.log('got unspents for ' + metaObj.issueAddress + " from block explorer")
+            console.log('got unspents for ' + metadata.issueAddress + " from block explorer")
             //add to transaction enough inputs so we can cover the cost
             //send change if any back to us
             var current = new bn(0);
-            cost = new bn(getIssuenceCost(metaObj));
+            cost = new bn(getIssuenceCost(metadata));
             change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
               if(utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
                   current = current.add(utxo.value)
-                  if(metaObj.flags.injectPreviousOutput) {
+                  if(metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
                   }  
 
@@ -638,14 +697,14 @@ var get_opreturn_data = function (hex) {
                if(toSatoshi(current).comparedTo(cost) >= 0) {
                   if(toSatoshi(current).comparedTo(cost) > 0) 
                     {
-                     // tx.addOutput(metaObj.issueAddress, toSatoshi(current) - cost);
+                     // tx.addOutput(metadata.issueAddress, toSatoshi(current) - cost);
                      change = toSatoshi(current) - cost;
                     }
                   break;
                 }
 
                 tx.addInput(transactions[transaction].txid, transactions[transaction].vout);
-                if(metaObj.flags.injectPreviousOutput) {
+                if(metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = 
                     bitcoinjs.Script.fromHex (transactions[transaction].transaction.vout[transactions[transaction].vout].scriptPubKey.hex)
                 }
@@ -696,7 +755,7 @@ var get_opreturn_data = function (hex) {
                   console.log('current amount ' + utxo.value + " needed " + missing)
                   tx.addInput(utxo.txid, utxo.index)
                   currentAmount = currentAmount.add(utxo.value)
-                  if(metaObj.flags.injectPreviousOutput) {
+                  if(metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
                   }  
 
@@ -731,6 +790,41 @@ var get_opreturn_data = function (hex) {
         else
           return fee + config.writemultisig ? config.mindustvalue  : 0;
        // }
+    }
+
+
+
+    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, blockhight) {
+        console.log(assetid)
+        console.log(blockhight)
+        var deferred = Q.defer();
+        var args = {
+                    path: { "assetid": assetid, "blockhight": blockhight },
+                    headers:{"Content-Type": "application/json"} 
+                }
+       try{
+        client.methods.getassetholders(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("getAssetStakeholders:(200) " + data);
+                deferred.resolve(JSON.parse(data));
+            }
+            else if(data) {
+                console.log("rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+      }
+      catch(e) { console.log(e) }
+
+        return deferred.promise;
     }
 
     function getNextOutputValue(metadata) {

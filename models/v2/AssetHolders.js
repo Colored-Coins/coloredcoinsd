@@ -1,9 +1,9 @@
 exports.models = {
-    "AssetHolders": {
-        "id": "AssetHolders",
-        "required": ["block_height", "asset_id", "owners"],
+    "assetHolders": {
+        "id": "assetHolders",
+        "required": ["minConfirmations", "assetId", "owners"],
         "properties": {
-            "block_height": {
+            "minConfirmations": {
                 "type": "integer",
                 "format": "int64",
                 "description": "block height at which to start search"
@@ -12,10 +12,10 @@ exports.models = {
                 "type": "string",
                 "description": "Id of the asset to search"
             },
-            "owners": {
+            "holders": {
                 "type": "array",
                 "items": {
-                    "$ref": "AssetHolder"
+                    "$ref": "assetHolder"
                 },
                 "description": "List of holding adresses, scripts and quantaties"
             }

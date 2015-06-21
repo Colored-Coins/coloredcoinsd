@@ -14,6 +14,9 @@ var config = {
     blockexplorer: {
       url: "http://coloredcoinsexplore-env.elasticbeanstalk.com"
     },
+    torrentServer: {
+      url:"http://development-colu-torrents.elasticbeanstalk.com"
+    },
     minfee: 1000,
     writemultisig: true,
     mindustvalue: 600,

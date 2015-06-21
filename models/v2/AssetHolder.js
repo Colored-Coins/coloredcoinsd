@@ -1,17 +1,13 @@
 exports.models = {
-    "AssetHolder": {
-        "id": "AssetHolder",
-        "required": ["script", "address", "asset_quantity"],
+    "assetHolder": {
+        "id": "assetHolder",
+        "required": ["address", "amount"],
         "properties": {
-            "script": {
-                "type": "string",
-                "description": "Script for the asset"
-            },
             "address": {
                 "type": "string",
                 "description": "Adress holding the asset"
             },
-            "asset_quantity": {
+            "amount": {
                 "type": "string",                
                 "description": "quantity of the asset"
             }

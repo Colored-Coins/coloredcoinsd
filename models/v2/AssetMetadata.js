@@ -1,6 +1,6 @@
 exports.models = {
-    "AssetMetadata": {
-        "id": "AssetMetadata",
+    "assetMetadata": {
+        "id": "assetMetadata",
         "required": ["issuer", "divisibility", "version", "type", "description"],
         "properties": {
             "issuer": {

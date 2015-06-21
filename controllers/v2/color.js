@@ -71,25 +71,28 @@ module.exports = (function () {
         swagger.addPost(sendAsset);
 
         //endpoint to get asset metadata
-        var getAssetIssueMetadata = {
+        var getAssetMetadata = {
             'spec': {
                 "description": "",
-                "path": "/assetIssueMetadata/{assetId}",
+                "path": "/assetMetadata/{assetId}/{utxo}?",
                 "notes": "Returns information about an asset issuence",
                 "summary": "",
                 "method": "GET",
-                "parameters": [sw.pathParam("assetId", "ID of Asset we want to get info for", "string")],
-                "type": "Asset",
+                "parameters": [
+                    sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
+                    sw.pathParam("utxo", "provide data for secific utxo (optional)", "string", false)
+                ],
+                "type": "assetMetadata",
                 "errorResponses": [swagger.errors.notFound('asset')],
-                "nickname": "getAsset"
+                "nickname": "getAssetMetadata"
             },
             'action': function (req, res) {
-                api.getAssetDefeintion(req.params.assetId).
+                api.getAssetMetadata(req.params.assetId).
                 then(function(data) { res.status(200).send(data) }, function(data) { res.status(400).send(data); });
             }
         };
 
-        //swagger.addGet(getAssetIssueMetadata);
+        swagger.addGet(getAssetIssueMetadata);
 
         // endpoint to get all adresses holding an asset
          var getHoldingAdressesForAsset = {
@@ -103,7 +106,7 @@ module.exports = (function () {
                         sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
                         sw.pathParam("blockheight", "block hieght to consider (optional)", "integer", false)
                 ],
-                "type": "AssetHolders",
+                "type": "assetHolders",
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "getStakeholders"
             },
@@ -113,7 +116,7 @@ module.exports = (function () {
             }
         };
 
-        //swagger.addGet(getHoldingAdressesForAsset);
+        swagger.addGet(getHoldingAdressesForAsset);
 
 
         console.log("color routes added.");
@@ -149,8 +152,7 @@ module.exports = (function () {
 
         console.log("issueAsset")
         validateInput(req.body).
-        //then(api.validateIssueTrasaction). <-- need to fix
-        //then(api.createAssetFile).
+        then(api.uploadMetadata).
         then(api.createIssueTransaction).
         then(function(data){
             res.status(200).send(data);
@@ -173,7 +175,7 @@ module.exports = (function () {
         var deferred = Q.defer();
         var valid = true;
         if (valid){
-            deferred.resolve(JSON.stringify(input));
+            deferred.resolve(input);
         }
         else {
             deferred.reject(new Error("metadata is invalid"));
