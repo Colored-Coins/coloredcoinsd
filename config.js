@@ -1,7 +1,7 @@
 var config = {
     testnet: true,
     google_api_key: "AIzaSyBJfxobLSO_IM9tI1ATWpOelVInNuH1kBM",
-    machineurl: "http://api.colu.co",
+    machineurl: "http://api.coloredcoins.org",
     useS3: true,
     bitcoind: {
           host: 'testnet.api.colu.co',
