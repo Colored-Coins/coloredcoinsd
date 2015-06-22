@@ -6,7 +6,7 @@ exports.models = {
             "value": {
                 "type": "number",
                 "format": "double",
-                "description": "transaction id"
+                "description": "value in satoshi"
             },
             "n": {
                 "type": "integer",

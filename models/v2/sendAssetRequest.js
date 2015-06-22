@@ -11,6 +11,10 @@ exports.models = {
                 "type": "string",
                 "description": "Adress to send the asset from"
             },
+            "sendutxo": {
+                "type": "string",
+                "description": "utxo to use for sending the asset itself"
+            },
             "financeOutput": {
                 "type": "vout",
                 "description": "use this vout as the first input, for the transaction"

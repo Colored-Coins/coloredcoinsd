@@ -24,11 +24,14 @@ exports.models = {
                 "description": "String that describes the asset"
             }, 
              "urls": {
-                "type": "urlItem",
+                 "type": "array",
+                "items": {
+                    "$ref": "urlItem"
+                },
                 "description": "section used only if the transaction is a reissueance trasaction"
             },       
             "userData": {
-                "type": "metadata",
+                "type": "json",
                 "description": "section used only if the transaction is a reissueance trasaction"
             }
         }

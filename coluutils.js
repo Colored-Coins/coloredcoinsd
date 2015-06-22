@@ -23,7 +23,7 @@ module.exports = (function () {
 
     function coluutils() {
          client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
-         client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&blockHeight=${blockheight}", "GET")
+         client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&minconf=${minconf}", "GET")
          client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
         //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
@@ -282,7 +282,12 @@ var get_opreturn_data = function (hex) {
       encoder.setAmount(metadata.amount, metadata.divisibility);
       if(metadata.metadata || metadata.rules) {
          if(config.writemultisig) {
-            // write the hashes to the first outpt and encode
+            if(!metadata.sha1 || !metadata.sha2) {
+               console.log("something went wrong with torrent sever")
+               throw new Error('missing sha1 or sha2 cannot issue, check torrent server')
+            }
+            encoder.setHash(metadata.sha1, metadata.sha2)
+
          }
       }
 
@@ -311,7 +316,7 @@ var get_opreturn_data = function (hex) {
       // add change
       args.tx.addOutput(metadata.issueAddress , args.change);
 
-      return args.tx;
+      return false//args.tx
 
     }
 
@@ -348,6 +353,7 @@ var get_opreturn_data = function (hex) {
                 console.log("upload:(200) " + data);
                 metadata.sha1 = data.torrentHash
                 metadata.sha2 = data.sha2
+                console.log(metadata)
                 deferred.resolve(metadata);
             }
             else if(data) {
@@ -380,7 +386,7 @@ var get_opreturn_data = function (hex) {
         client.methods.getaddressutxos(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getAddressBalance:(200) " + data);
+                console.log("getAddressBalance:(200)");
                 deferred.resolve(data);
             }
             else if(data) {
@@ -801,12 +807,12 @@ var get_opreturn_data = function (hex) {
       return deferred.promise
     }
 
-    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, blockhight) {
+    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum) {
         console.log(assetid)
         console.log(blockhight)
         var deferred = Q.defer();
         var args = {
-                    path: { "assetid": assetid, "blockhight": blockhight },
+                    path: { "assetid": assetid, "minconf": minconfnum },
                     headers:{"Content-Type": "application/json"} 
                 }
        try{

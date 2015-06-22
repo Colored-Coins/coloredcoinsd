@@ -1,6 +1,6 @@
 exports.models = {
     "addressAssetValueList": {
-        "id": "addressAssetValue",
+        "id": "addressAssetValueList",
         "required": ["items", "locked"],
         "properties": {
             "items": {

@@ -74,7 +74,7 @@ module.exports = (function () {
         var getAssetMetadata = {
             'spec': {
                 "description": "",
-                "path": "/assetMetadata/{assetId}/{utxo}?",
+                "path": "/assetmetadata/{assetId}/{utxo}?",
                 "notes": "Returns information about an asset issuence",
                 "summary": "",
                 "method": "GET",
@@ -82,7 +82,7 @@ module.exports = (function () {
                     sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
                     sw.pathParam("utxo", "provide data for secific utxo (optional)", "string", false)
                 ],
-                "type": "assetMetadata",
+                "type": "assetMetadataResponse",
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "getAssetMetadata"
             },
@@ -98,13 +98,13 @@ module.exports = (function () {
          var getHoldingAdressesForAsset = {
             'spec': {
                 "description": "",
-                "path": "/stakeholders/{assetId}/{blockheight}?",
+                "path": "/stakeholders/{assetId}/{numConfirmations}?",
                 "notes": "Returns a all adresses holding the asset",
                 "summary": "",
                 "method": "GET",
                 "parameters": [
                         sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
-                        sw.pathParam("blockheight", "block hieght to consider (optional)", "integer", false)
+                        sw.pathParam("numConfirmations", "min confermations (optional)", "integer", false)
                 ],
                 "type": "assetHolders",
                 "errorResponses": [swagger.errors.notFound('asset')],
@@ -206,7 +206,7 @@ module.exports = (function () {
 
     function trygetAssetStakeholders(req, res) {
         try{
-            api.getAssetStakeholders(req.params.assetId, req.params.blockheight)
+            api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations)
             .then(function(data){
                  res.json(data);
             })
