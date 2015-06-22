@@ -8,7 +8,7 @@ exports.models = {
                 "format": "int64",
                 "description": "block height at which to start search"
             },
-            "asset_id": {
+            "assetId": {
                 "type": "string",
                 "description": "Id of the asset to search"
             },

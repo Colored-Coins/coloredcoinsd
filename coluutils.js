@@ -304,7 +304,8 @@ var get_opreturn_data = function (hex) {
       console.log("before encode done")
       var buffer = encoder.encode();
 
-      console.log("encoding done")
+      console.log("encoding done, buufer: ")
+      console.log(buffer)
       var ret = bitcoinjs.Script.fromChunks(
                               [
                                 bitcoinjs.opcodes.OP_RETURN,
@@ -316,7 +317,7 @@ var get_opreturn_data = function (hex) {
       // add change
       args.tx.addOutput(metadata.issueAddress , args.change);
 
-      return false//args.tx
+      return args.tx
 
     }
 
@@ -351,9 +352,9 @@ var get_opreturn_data = function (hex) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("upload:(200) " + data);
-                metadata.sha1 = data.torrentHash
-                metadata.sha2 = data.sha2
-                console.log(metadata)
+                var torretdata = JSON.parse(data)
+                metadata.sha1 = torretdata.torrentHash
+                metadata.sha2 = torretdata.sha2
                 deferred.resolve(metadata);
             }
             else if(data) {
