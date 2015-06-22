@@ -19,6 +19,10 @@ exports.models = {
                 "minimum": "1000",
                 "maximum": "1000000000"
             },
+            "pubKeyReturnMultisigDust": {
+                "type": "string",
+                "description": "encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
+            },
             "financeOutput": {
                 "type": "vout",
                 "description": "use this vout as the first input, for the transaction"

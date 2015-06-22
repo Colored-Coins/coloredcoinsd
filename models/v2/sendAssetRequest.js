@@ -7,6 +7,10 @@ exports.models = {
                 "type": "integer",       
                 "description": "Fees for transaction in satoshi"
             },
+            "pubKeyReturnMultisigDust": {
+                "type": "string",
+                "description": "encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
+            },
             "from": {
                 "type": "string",
                 "description": "Adress to send the asset from"

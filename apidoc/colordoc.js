@@ -92,6 +92,7 @@
      * @apiParam {String} amount Amount of units for the asset you wish to issue.
      * @apiParam {Number} divisibility To how many places is the asset devisible (0-8).
      * @apiParam {Number} fee mining fee for the issueance recommended a minimum of 1000 satoshi.
+     * @apiParam {String} [pubKeyReturnMultisigDust] encoded public key if you want to recive the multisig dust if multisig is needed for the metadata.
      * @apiParam {Object} [financeOutput] A vout type object to use in order to finance the issue
      * @apiParam {Number} financeOutput.value Value in BTC of the output
      * @apiParam {Number} financeOutput.n Output index
@@ -154,6 +155,7 @@
      * more assets inputed then assets transfferd then the remainder of all the assets is considerd to be spent to the last output
      *
      * @apiParam {Number} fee Fee for transaction in satoshi.
+     * @apiParam {String} [pubKeyReturnMultisigDust] encoded public key if you want to recive the multisig dust if multisig is needed for the metadata.
      * @apiParam {String} [from] adress to send the asset from. Any unspents of the specific asset held by that address will be used (optional can used sendutxo instead)
      * @apiParam {String} [sendutxo] Utxo to use for sending the asset itself (<transaction>:<index> format)
      * @apiParam {Object} [financeOutput] A vout type object to use in order to finance the transfer (btc costs)

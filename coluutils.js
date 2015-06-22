@@ -23,8 +23,9 @@ module.exports = (function () {
 
     function coluutils() {
          client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
-         client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&minconf=${minconf}", "GET")
+         client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
          client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
+         client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
         //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
         //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
@@ -275,6 +276,7 @@ var get_opreturn_data = function (hex) {
 
 
     function encodeColorScheme(args) {
+      var addMultisig = false;
       var metadata = args.metadata
       var encoder = cc.newTransaction(0x4343, 0x01)
       encoder.setLockStatus(!metadata.reissueable)
@@ -287,14 +289,13 @@ var get_opreturn_data = function (hex) {
                throw new Error('missing sha1 or sha2 cannot issue, check torrent server')
             }
             encoder.setHash(metadata.sha1, metadata.sha2)
-
          }
       }
 
       console.log(metadata.transfer)
       if(metadata.transfer) {
         metadata.transfer.forEach(function(transferobj, i){
-          console.log("payment " + transferobj.amount + " " + args.tx.outs.length)
+          console.log("payment " + transferobj.amount + " " + args.tx.outs.length )
           encoder.addPayment(0, transferobj.amount, args.tx.outs.length)
           args.tx.addOutput(transferobj.address, config.mindustvalue)
         })
@@ -302,10 +303,15 @@ var get_opreturn_data = function (hex) {
 
       //add op_return
       console.log("before encode done")
-      var buffer = encoder.encode();
+      var buffer = encoder.encode()
 
-      console.log("encoding done, buufer: ")
-      console.log(buffer)
+      console.log("encoding done, buffer: ")
+      if(buffer.leftover && buffer.leftover.length > 0)
+      {
+        encoder.shiftOutputs()
+        buffer = encoder.encode()
+        addMultisig = true;
+      }
       var ret = bitcoinjs.Script.fromChunks(
                               [
                                 bitcoinjs.opcodes.OP_RETURN,
@@ -316,6 +322,17 @@ var get_opreturn_data = function (hex) {
 
       // add change
       args.tx.addOutput(metadata.issueAddress , args.change);
+
+      // need to encode hashes in first tx
+      if(addMultisig) {
+        if(buffer.leftover && buffer.leftover.length == 1)
+              addHashesOutput(args.tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[0])
+        else if(buffer.leftover && buffer.leftover.length == 2)
+              addHashesOutput(args.tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[1], buffer.leftover[0])
+        else
+          throw new Error('have hashes and enough room we offested inputs for nothing')
+
+      }
 
       return args.tx
 
@@ -374,6 +391,50 @@ var get_opreturn_data = function (hex) {
 
     }
 
+    function getUnspentArrayByAddressOrUtxo(address, utxo) {
+      if(utxo) {
+        console.log('using specific utxo: ' + utxo)
+          return getTransastion(utxo.split(':')[0])
+      }
+      else
+        return getUnspentsByAddress(address)
+    }
+
+    function getTransastion(txid) {
+
+      var deferred = Q.defer();
+        var args = {
+                    path: { "txid": txid },
+                    headers:{"Content-Type": "application/json"} 
+                }
+         try{
+
+      
+        client.methods.gettransaction(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("getTransastion:(200)");
+                deferred.resolve([data]);
+            }
+            else if(data) {
+                console.log("getTransastion: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("getTransastion: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+      }
+      catch(e) { console.log(e) }
+
+        return deferred.promise;
+      
+    }
+
     function getUnspentsByAddress(address)
     {
         var deferred = Q.defer();
@@ -387,15 +448,15 @@ var get_opreturn_data = function (hex) {
         client.methods.getaddressutxos(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getAddressBalance:(200)");
+                console.log("getUnspentsByAddress:(200)");
                 deferred.resolve(data);
             }
             else if(data) {
-                console.log("rejecting with: " + response.statusCode + " " + data);
+                console.log("getUnspentsByAddress: rejecting with: " + response.statusCode + " " + data);
                 deferred.reject(new Error(response.statusCode + " " + data));
             }
             else {
-                console.log("rejecting with: " + response.statusCode);
+                console.log("getUnspentsByAddress: rejecting with: " + response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -429,8 +490,8 @@ var get_opreturn_data = function (hex) {
         var totalInputs = { amount: 0 }
         
         try{
-        if(metadata.from) {
-          getUnspentsByAddress(metadata.from)
+        if(metadata.from || metadata.sendutxo) {
+          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo)
           .then(function(data){
             var utxos = JSON.parse(data).utxos
             console.log('got unspents for ' + metadata.from + " from block explorer")
@@ -513,7 +574,29 @@ var get_opreturn_data = function (hex) {
              }
             console.log("before using encoder")
             try{
+                //add metadata if we have any
+                if(metadata.metadata || metadata.rules) {
+                   if(config.writemultisig) {
+                      if(!metadata.sha1 || !metadata.sha2) {
+                         console.log("something went wrong with torrent sever")
+                         throw new Error('missing sha1 or sha2 cannot issue, check torrent server')
+                      }
+                      encoder.setHash(metadata.sha1, metadata.sha2)
+                   }
+                }
               var buffer = encoder.encode();
+              if(buffer.leftover && buffer.leftover.length > 0)
+              {
+                  encoder.shiftOutputs()
+                  buffer = encoder.encode()
+                  if(buffer.leftover.length == 1)
+                        addHashesOutput(tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[0])
+                  else if(buffer.leftover.length == 2)
+                        addHashesOutput(tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[1], buffer.leftover[0])
+                  else
+                    throw new Error('have hashes and enough room we offested inputs for nothing')
+              }
+                 
             }
             catch(e) {
               console.log(e)
@@ -688,7 +771,7 @@ var get_opreturn_data = function (hex) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
                   current = current.add(utxo.value)
-                  if(metadata.flags.injectPreviousOutput) {
+                  if(metadata.flags && metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
                   }  
 
@@ -861,8 +944,24 @@ var get_opreturn_data = function (hex) {
       return deferred.promise;
     }
 
-    function addOutput() {
+    function addHashesOutput(tx, address, sha2, sha1) {
+      var chunks = []
+      chunks.push(bitcoinjs.opcodes.OP_1)
+      chunks.push(address ? new Buffer(address, 'hex') : new Buffer('03ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', 'hex'))
+      chunks.push(Buffer.concat([new Buffer('03', 'hex'), sha2], 33))
+      if(sha1) {
+        chunks.push(Buffer.concat([new Buffer('030000000000000000000000', 'hex'), sha1], 33))
+        chunks.push(bitcoinjs.opcodes.OP_3)
+      }
+      else
+        chunks.push(bitcoinjs.opcodes.OP_2)
+      chunks.push(bitcoinjs.opcodes.OP_CHECKMULTISIG)
 
+      console.log(chunks)   
+
+      var script = bitcoinjs.Script.fromChunks(chunks)
+
+      tx.outs.unshift({ script: script, value: config.mindustvalue })
     }
 
     function sha256(buffer) {

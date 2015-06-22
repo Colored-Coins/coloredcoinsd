@@ -186,11 +186,11 @@ module.exports = (function () {
 
     function trySendAsset(req, res) {
         try{
-            console.log(req.body);
             //var reqData = JSON.parse(req.body)
             console.log('parsed ok');
-            api.createSendAssetTansaction(req.body)
-             .then(function(data){
+            api.uploadMetadata(req.body).
+            then(api.createSendAssetTansaction).
+            then(function(data){
                  res.json({ txHex: data.toHex()});
             })
             .catch(function(error){
