@@ -235,6 +235,7 @@ var get_opreturn_data = function (hex) {
 
     coluutils.createIssueTransaction = function createIssueTransaction(metadata) {
         var deferred = Q.defer();
+        metadata.divisibility = metadata.divisibility || 0
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
@@ -292,7 +293,7 @@ var get_opreturn_data = function (hex) {
          }
       }
 
-      console.log(metadata.transfer)
+      //console.log(metadata.transfer)
       if(metadata.transfer) {
         metadata.transfer.forEach(function(transferobj, i){
           console.log("payment " + transferobj.amount + " " + args.tx.outs.length )
@@ -723,32 +724,12 @@ var get_opreturn_data = function (hex) {
                   bitcoinjs.Script.fromHex (metadata.financeOutput.scriptPubKey.hex)
           }
 
-          opts = {
-              'cc_metadata': [{
-                'type': 'issuance',
-                'lockStatus': !metadata.reissueable
-              }],
-              'vin': [{
-                'txid': metadata.financeOutputTxid,
-                'vout': metadata.financeOutput.n
-                //'scriptSig': {
-                //  'asm': '3045022100daf8f8d65ea908a28d90f700dc932ecb3b68f402b04ba92f987e8abd7080fcad02205ce81b698b8013b86813c9edafc9e79997610626c9dd1bfb49f60abee9daa43801 029b622e5f0f87f2be9f23c4d82f818a73e258a11c26f01f73c8b595042507a574',
-                //}
-                //'address': metadata.financeOutput.scriptPubKey.addresses[0]
-              }]
-            };
-
-            if(opts.cc_metadata[0].lockStatus)
-                scriptSig.asm = metadata.financeOutput.scriptPubKey.asm;
-            else {
-                console.log("++++++sending pedo address : " + metadata.financeOutput.scriptPubKey.addresses[0])
-                opts.vin[0].address = metadata.financeOutput.scriptPubKey.addresses[0]
-              }
-
-          console.log('encoding asset: ')
-          console.log(opts)
-          assetId = assetIdencoder(opts)
-          console.log('assetId: ' + assetId)
+          assetId = encodeAssetIdInfo(metadata.reissueable, 
+                metadata.financeOutputTxid,
+                metadata.financeOutput.n,
+                metadata.financeOutput.scriptPubKey.asm,
+                metadata.financeOutput.scriptPubKey.addresses[0])
+          
           deferred.resolve({tx: tx, metadata: metadata, change: (toSatoshi(current) - cost), assetId: assetId})
           return deferred.promise; 
         }
@@ -770,6 +751,14 @@ var get_opreturn_data = function (hex) {
               if(utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
+                  if(tx.ins.length == 1) { //encode asset 
+                    console.log(tx.ins[0].script)
+                     assetId = encodeAssetIdInfo(metadata.reissueable, 
+                                    utxo.txid,
+                                    utxo.index,
+                                    utxo.scriptPubKey.asm,
+                                    utxo.scriptPubKey.addresses[0])
+                  }
                   current = current.add(utxo.value)
                   if(metadata.flags && metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
@@ -803,7 +792,7 @@ var get_opreturn_data = function (hex) {
             }*/
             change = current - cost
             console.log('finished adding inputs to tx')
-            return { success: (toSatoshi(current).comparedTo(cost) > 0), change: change};
+            return { success: (toSatoshi(current).comparedTo(cost) > 0), change: change, assetId: assetId};
         }).
         then(function(state) {
           console.log('return the tx to encode')
@@ -816,6 +805,36 @@ var get_opreturn_data = function (hex) {
 
 
         return deferred.promise;
+    }
+
+
+    function encodeAssetIdInfo(reissueable, txid, nvout, asm, address){
+       var opts = {
+              'cc_data': [{
+                'type': 'issuance',
+                'lockStatus': !reissueable
+              }],
+              'vin': [{
+                'txid': txid,
+                'vout': nvout
+              }]
+            }
+
+
+
+        if(!reissueable) {
+           console.log("++++++sending pedo locked : " + txid)
+        }
+        else {
+            console.log("++++++sending pedo address : " + address)
+            opts.vin[0].address = address
+          }
+
+          console.log('encoding asset is locked: ' + !reissueable)
+          console.log(opts)
+          assetId = assetIdencoder(opts)
+          console.log('assetId: ' + assetId)
+          return assetId
     }
 
     //TODO: check if we can find the sum in mul
