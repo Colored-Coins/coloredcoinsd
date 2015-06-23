@@ -27,6 +27,7 @@ module.exports = (function () {
          client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
          client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
+         client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "POST")
         //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
         //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
 
@@ -219,7 +220,7 @@ var get_opreturn_data = function (hex) {
         addInputsForIssueTransaction(tx, metadata).
         then(function(args){
             tx = encodeColorScheme(args);
-            deferred.resolve({txHex: tx.toHex(), assetId: args.assetId || "0"});
+            deferred.resolve({txHex: tx.toHex(), assetId: args.assetId || "0", metadata: metadata});
         }).
         catch(function(err) {
           deferred.reject(err);
@@ -235,9 +236,9 @@ var get_opreturn_data = function (hex) {
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
         addInputsForSendTransaction(tx, metadata).
-        then(function(tx){
-            console.log(tx)
-            deferred.resolve(tx);
+        then(function(data){
+            console.log(data.tx)
+            deferred.resolve(data);
         }).
         catch(function(err) {
           console.log(err)
@@ -316,6 +317,45 @@ var get_opreturn_data = function (hex) {
 
     }
 
+
+    coluutils.seedMetadata = function seedMetadata(hash) {
+        var deferred = Q.defer();
+        
+        if(!hash) {
+          console.log('no metadata to seed')
+          return deferred.resolve()
+        }
+        
+        var args = {
+                    path: { "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImV4cCI6IjIwMTYtMDUtMzBUMjI6MzY6MDUuMzMxWiJ9.hNTUgkQzuMwcFNadg49bOeLUA5hzuHAQWc8le40PNus",
+                            "torrentHash": hash },                      
+                    headers:{"Content-Type": "application/json"} 
+
+                }
+
+
+         client.methods.seed(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("seed:(200) " + data);
+                var torretdata = JSON.parse(data)
+                deferred.resolve(data);
+            }
+            else if(data) {
+                console.log("seed: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("seed: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('seed: something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+
+        return deferred.promise;
+    } 
 
     coluutils.uploadMetadata =  function uploadMetadata(metadata) 
     {
@@ -597,7 +637,7 @@ var get_opreturn_data = function (hex) {
             if(lastOutputValue)
               tx.addOutput(metadata.from, lastOutputValue);
             console.log('success')
-            deferred.resolve(tx);
+            deferred.resolve({tx: tx, metadata: metadata });
             return;
           }) // then
         } // if
@@ -897,8 +937,8 @@ var get_opreturn_data = function (hex) {
     }
 
     coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum) {
-        console.log(assetid)
-        console.log(blockhight)
+        console.log('getAssetStakeholders: ' + assetid)
+        minconfnum = minconfnum || 0
         var deferred = Q.defer();
         var args = {
                     path: { "assetid": assetid, "minconf": minconfnum },

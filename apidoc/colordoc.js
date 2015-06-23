@@ -240,11 +240,11 @@
      */
 
      /**
-     * @api {get} /assetinfo/:address Request to get asset information for the address
-     * @apiName getAssetInfo
+     * @api {get} /addressinfo/:address Request to get asset information for the address
+     * @apiName getAddressInfo
      * @apiGroup ColoredCoinsd
      * @apiDescription This api call is used to get all the assets for the address, this information is per utxo
-     * owned by the address
+     * owned by the address, also retrives uncolored utxos.
      *
      * @apiParam {String} address Base58 address
      *

@@ -123,7 +123,7 @@ module.exports = (function () {
         var getAddressInfo = {
             'spec': {
                 "description": "",
-                "path": "/adderssinfo/{address}",
+                "path": "/addressinfo/{address}",
                 "notes": "Returns information about utxo's held by an address",
                 "summary": "",
                 "method": "GET",
@@ -218,7 +218,8 @@ module.exports = (function () {
         then(api.uploadMetadata).
         then(api.createIssueTransaction).
         then(function(data){
-            res.status(200).send(data);
+            api.seedMetadata(data.metadata.sha1)
+            res.status(200).send({txHex: data.txHex, assetId: data.txHex});
         }).
         catch(function(error) { 
             console.log({ error: error.message, stack: error.stack});
@@ -273,7 +274,8 @@ module.exports = (function () {
             then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
             then(function(data){
-                 res.json({ txHex: data.toHex()});
+                 api.seedMetadata(data.metadata.sha1)
+                 res.json({ txHex: data.tx.toHex()});
             })
             .catch(function(error){
                  console.log(error)
