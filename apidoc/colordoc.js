@@ -225,3 +225,43 @@
      * 
      */
 
+
+
+      /**
+     * @api {post} /broadcast Request to send the signed transaction through the api to the bitcoin network
+     * @apiName broadcastTransaction
+     * @apiGroup ColoredCoinsd
+     * @apiDescription This api call is used to send the signed raw transaction hex to the bitcoin network
+     *
+     * @apiParam {String} txHex The hex of the transaction you want to send.
+     * @apiSuccess {String} txid The transaction txid
+     * @apiVersion 0.2.0
+     * 
+     */
+
+     /**
+     * @api {get} /assetinfo/:address Request to get asset information for the address
+     * @apiName getAssetInfo
+     * @apiGroup ColoredCoinsd
+     * @apiDescription This api call is used to get all the assets for the address, this information is per utxo
+     * owned by the address
+     *
+     * @apiParam {String} address Base58 address
+     *
+     * @apiSuccess {String} address Base58 address
+     * @apiSuccess {Object[]} utxos Arry of ccUtxo items
+     * @apiSuccess {Object} utxos.scriptPubKey ScriptPubKey type object
+     * @apiSuccess {String} utxos.scriptPubKey.asm Asm for the output
+     * @apiSuccess {String} utxos.scriptPubKey.hex Hex for the output
+     * @apiSuccess {String} utxos.scriptPubKey.type Bitcoin transaction type
+     * @apiSuccess {Number} [utxos.scriptPubKey.reqSigs] Number of required signatures to redeem
+     * @apiSuccess {String[]} [utxos.scriptPubKey.adresses] Addresses that can redeem
+     * @apiSuccess {Object[]} assets Array of assetInfo type objects  
+     * @apiSuccess {Number} assets.amount Amount of the asset in the utxo
+     * @apiSuccess {String} assets.assetId Asset id
+     * @apiSuccess {String} assets.issueTxid Txid that links this utxo to is genises issuence
+     * @apiSuccess {Number} assets.divisibility How divisible the asset is
+     * @apiSuccess {Boolean} assets.lockStatus Was the issuence locked
+     * @apiVersion 0.2.0
+     * 
+     */

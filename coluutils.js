@@ -39,6 +39,11 @@ module.exports = (function () {
     coluutils.getBlockCount = function getBlockCount() {     
         return callservice('getblockcount');       
     }
+    coluutils.broadcastTx = function broadcastTx(txHex) {
+      return callservice('sendrawtransaction', txHex); 
+    }
+
+
     coluutils.getTransactionListForAddress = function getTransactionListForAddress(address, no_confirmations) {
       var deferred = Q.defer();
       var confirmations = no_confirmations || 0;
@@ -129,12 +134,12 @@ module.exports = (function () {
 }
 
 var check_version = function (hex) {
- var version = hex.toString('hex').substring(0, 4)
- if (version.toLowerCase() == '4343') {
-   return true
- }
- return false
-}
+   var version = hex.toString('hex').substring(0, 4)
+   if (version.toLowerCase() == '4343') {
+     return true
+   }
+   return false
+  }
 
 var get_opreturn_data = function (hex) {
     return hex.substring(4)
@@ -142,7 +147,7 @@ var get_opreturn_data = function (hex) {
 
 
 
-    function callservice() {
+  function callservice() {
         var deferred = Q.defer();
 
         var args = [].slice.call(arguments);
@@ -158,7 +163,7 @@ var get_opreturn_data = function (hex) {
         rpcclient.cmd(batch, function(err){
           if (err) {
              console.log(err);
-              deferred.reject(new Error("failed: Status code was " + err));
+              deferred.reject(new Error("Bitcoind: Status code was " + err));
           }
           else {
             deferred.resolve(arguments[1]);
@@ -204,34 +209,6 @@ var get_opreturn_data = function (hex) {
        return deferred.promise;
     }
 
-    coluutils.createAssetFile = function createAssetFile(data) {
-      console.log(data);
-        var deferred = Q.defer();
-
-
-        /*var key = sha1(sha256(data)).toString('hex');
-        
-        AWS.config.update({ accessKeyId: process.env.AWSAKI,
-                        secretAccessKey: process.env.AWSSSK });
-
-        var s3bucket = new AWS.S3({params: {Bucket: 'coloredcoin-assets'}});
-
-        s3bucket.upload({Key: key, Body:data, ContentType: 'application/json' }, function(err, data) {
-            if (err) {
-              console.log("Error uploading data: ", err);
-                deferred.reject(new Error("Status code was " + err));
-            } else {
-             // console.log("Successfully uploaded data to coloredcoin-assets");
-               deferred.resolve({ metadata: "https://s3.amazonaws.com/coloredcoin-assets/" + key });
-            }
-        });*/
-               
-
-                
-        return deferred.promise;
-
-
-    }
 
     coluutils.createIssueTransaction = function createIssueTransaction(metadata) {
         var deferred = Q.defer();
@@ -397,8 +374,10 @@ var get_opreturn_data = function (hex) {
         console.log('using specific utxo: ' + utxo)
           return getTransastion(utxo.split(':')[0])
       }
-      else
+      else {
+        console.log('using utxo for address: ' + address)
         return getUnspentsByAddress(address)
+      }
     }
 
     function getTransastion(txid) {
@@ -489,6 +468,8 @@ var get_opreturn_data = function (hex) {
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
         var totalInputs = { amount: 0 }
+
+        console.log('addInputsForSendTransaction')
         
         try{
         if(metadata.from || metadata.sendutxo) {
@@ -618,9 +599,12 @@ var get_opreturn_data = function (hex) {
             console.log('success')
             deferred.resolve(tx);
             return;
-          })
+          }) // then
+        } // if
+        else {
+           deferred.reject(new Error('no from address or sendutxo in input, cant create transacion'))
         }
-      }
+      } //try
       catch(e){
         console.log(e)
       }
@@ -895,10 +879,12 @@ var get_opreturn_data = function (hex) {
             fee += config.mindustvalue
           })
         }
-        if(!metaobj.rules && !metaobj.metadata)
-          return fee
-        else
-          return fee + config.writemultisig ? config.mindustvalue  : 0;
+        if(metaobj.rules || metaobj.metadata)
+           fee += config.writemultisig ? config.mindustvalue  : 0;
+
+         console.log('projected fee is: ' + fee)
+         return fee
+
        // }
     }
 
@@ -943,11 +929,13 @@ var get_opreturn_data = function (hex) {
         return deferred.promise;
     }
 
+
+    coluutils.getAddressInfo = function getAddressInfo(address) {
+        return getUnspentsByAddress(address)
+    }
+
     function getNextOutputValue(metadata) {
-     // if(!bills && !mints)
         return new bn(getTotalOuputValue(metadata));
-     // else
-      //  throw new Error("Cant find next output value");
     }
 
     function addOutputs(tx, metadata) {
@@ -955,7 +943,6 @@ var get_opreturn_data = function (hex) {
       var total_out = new bn(getTotalOuputValue(metadata));
       while(total_out.toNumber()) {
             nextOutputValue = getNextOutputValue(metadata);
-
             total_out = total_out.minus(nextOutputValue);
       }
 

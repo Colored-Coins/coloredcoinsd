@@ -70,6 +70,30 @@ module.exports = (function () {
 
         swagger.addPost(sendAsset);
 
+
+
+        var broadcastTx = {
+            'spec': {
+                "description": "",
+                "path": "/broadcast",
+                "notes": "broadcasts a raw transaction to the bitcoin network",
+                "summary": "",
+                "method": "POST",
+                "parameters": [
+                        sw.bodyParam("rawTxHex", "Hex of a singed transaction", "rawTxHex")
+                ],
+                "type": "broadcastTxResponse",
+                "errorResponses": [swagger.errors.notFound('asset')],
+                "nickname": "sendAsset"
+            },
+            'action': function (req, res) {
+                console.log("broadcast asset action");
+                tryBroadcastAsset(req, res);
+            }
+        };
+
+        swagger.addPost(broadcastTx);
+
         //endpoint to get asset metadata
         var getAssetMetadata = {
             'spec': {
@@ -93,6 +117,30 @@ module.exports = (function () {
         };
 
         swagger.addGet(getAssetMetadata);
+
+
+        //endpoint to get all the assets and utxo's in an address
+        var getAddressInfo = {
+            'spec': {
+                "description": "",
+                "path": "/adderssinfo/{address}",
+                "notes": "Returns information about utxo's held by an address",
+                "summary": "",
+                "method": "GET",
+                "parameters": [
+                    sw.pathParam("address", "base58 address", "string"),
+                ],
+                "type": "addressInfoResponse",
+                "errorResponses": [swagger.errors.notFound('asset')],
+                "nickname": "getAddressInfo"
+            },
+            'action': function (req, res) {
+                api.getAddressInfo(req.params.address).
+                then(function(data) { res.status(200).send(data) }, function(data) { res.status(400).send(data); });
+            }
+        };
+
+        swagger.addGet(getAddressInfo);
 
         // endpoint to get all adresses holding an asset
          var getHoldingAdressesForAsset = {
@@ -148,6 +196,21 @@ module.exports = (function () {
         }
     }
 
+    function tryBroadcastAsset(req, res) {
+
+        console.log("tryBroadcastAsset")
+        api.broadcastTx(req.body.txHex).
+        then(function(txid){
+            res.status(200).send({txid: txid});
+        }).
+        catch(function(error) { 
+            console.log({ error: error.message, stack: error.stack});
+            res.status(500).send({ error: error.message })
+        }).done();
+
+    }
+
+
     function tryIssueAsset(req, res) {
 
         console.log("issueAsset")
@@ -171,14 +234,32 @@ module.exports = (function () {
     }
 
 
-    function validateInput(input) {
+    function validateInput(input, musthave, oneof) {
         var deferred = Q.defer();
         var valid = true;
+        var missing = ''
+        if(musthave) {
+            musthave.forEach(function (property){
+                if(valid) {
+                    valid = input.hasOwnProperty(property)
+                    if(!valid) missing = property
+                }
+            })
+        }
+        if(oneof) {
+            missing += 'any of: '
+            valid = oneof.some(function (property) {
+                valid = input.hasOwnProperty(property)
+                if(!valid) missing += (property + ', ')        
+                return valid;
+            })
+        }
+        
         if (valid){
             deferred.resolve(input);
         }
         else {
-            deferred.reject(new Error("metadata is invalid"));
+            deferred.reject(new Error("input is invalid missing: " + missing));
         }
            
         return deferred.promise;
@@ -188,7 +269,8 @@ module.exports = (function () {
         try{
             //var reqData = JSON.parse(req.body)
             console.log('parsed ok');
-            api.uploadMetadata(req.body).
+            validateInput(req.body, null, ['from', 'sendutxo']).
+            then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
             then(function(data){
                  res.json({ txHex: data.toHex()});

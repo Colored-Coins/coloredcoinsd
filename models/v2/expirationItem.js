@@ -4,7 +4,8 @@ exports.models = {
         "required": ["validUntil", "locked"],
         "properties": {
             "validUntil": {
-                "type": "int32",
+                "type": "integer",
+                "format": "int32",
                 "description": "valid till block"
             },
             "locked": {
