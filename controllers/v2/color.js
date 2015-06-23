@@ -219,7 +219,7 @@ module.exports = (function () {
         then(api.createIssueTransaction).
         then(function(data){
             api.seedMetadata(data.metadata.sha1)
-            res.status(200).send({txHex: data.txHex, assetId: data.txHex});
+            res.status(200).send({txHex: data.txHex, assetId: data.assetId});
         }).
         catch(function(error) { 
             console.log({ error: error.message, stack: error.stack});
