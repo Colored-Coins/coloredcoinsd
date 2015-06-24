@@ -28,6 +28,7 @@ module.exports = (function () {
          client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
          client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "POST")
+         client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
         //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
         //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
 
@@ -318,6 +319,102 @@ var get_opreturn_data = function (hex) {
     }
 
 
+    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo) {
+      var self = this
+       var deferred = Q.defer()
+
+        getAssetInfo(assetId, utxo).
+        then(function(data){
+          console.log(data)
+          if(!data.issuanceTxid)
+              deferred.reject(new Error('missing issuanceTxid for utxo ' + utxo))
+          else
+          {
+            var txid = utxo.split(':')[0]
+            var promises = []
+            promises.push(getTransastion(data.issuanceTxid))
+            if(data.issuanceTxid !== txid) promises.push(getTransastion(txid))
+
+            console.log('requesting issue tx: ' + data.issuanceTxid)
+            console.log('requesting utxo tx: ' + txid)
+            Q.all(promises).done(function(values){
+
+                  var hashes = []
+                  var getHashes = []
+                  var multisignum = 0
+                  values.forEach(function(txbufer, i) {
+                    var tx = JSON.parse(txbufer)
+                    console.log('tx')
+                    console.log(tx)
+                    console.log(tx.vout[0].scriptPubKey.hex)
+
+                     var script = {}
+                     if(tx.ccdata[0].multiSig && tx.ccdata[0].multiSig.length > 0) {
+                          script = bitcoinjs.Script.fromHex(tx.vout[0].scriptPubKey.hex)
+                          multisignum =  script.chunks.length - 3;
+                          console.log('multisignum: ' + multisignum);
+                     }
+                     else {
+                        if(i == 0 && !tx.ccdata[0].torrentHash && multisignum != 3) {
+                          console.log('no metadata anywhere for issue')
+                          return;
+                        }
+                        if(i == 1 && !tx.ccdata[0].sha2 && multisignum >= 2) {
+                          console.log('no metadata anywhere for utxo')
+                          return;
+                        }
+
+                     }
+
+                     var sha1 = tx.ccdata[0].torrentHash || script.chunks[3]
+                     var sha2 = tx.ccdata[0].sha2 || script.chunks[2]
+                     hashes.push({sha1: sha1, sha2: sha2})
+                     console.log('requesting torrent by hash: ' + sha1)
+                     getHashes.push(self.downloadMetadata(sha1))
+                  })
+                  if(getHashes.length == 0) {
+                      data.metadataOfIssuence = 'none'
+                      data.rulesOfIssuence = 'none'
+                      data.sha2Issue = 'none'
+                      data.metadatOfUtxo = 'none'
+                      data.rulesofUtxo = 'none'
+                      data.sha2Utxo = 'none'
+                      deferred.resolve(data)
+                  }
+                  else {
+                    Q.all(getHashes).done(function(metas){
+                        var first = JSON.parse(metas[0])
+                        var second = metas.length > 1 ? JSON.parse(metas[1]) : first
+                        first.rules = first.rules || 'none'
+                        first.data = first.data || 'none'
+                        second.rules = second.rules || 'none'
+                        second.data = second.data || 'none'
+                        data.metadataOfIssuence = first.data
+                        data.rulesOfIssuence = first.rules
+                        data.sha2Issue = hashes[0].sha2.toString('hex')
+                        data.metadatOfUtxo = metas.length > 1 ? second.data : first.data
+                        data.rulesofUtxo = metas.length > 1 ? second.rules : first.rules
+                        data.sha2Utxo = metas.length > 1 ? hashes[1].sha2.toString('hex') : hashes[0].sha2.toString('hex')
+                        deferred.resolve(data)
+                     }, function(err){
+                        deferred.reject(new Error(err))
+                     })
+
+                  }
+            })
+          }
+        }).
+        catch(function(error) {
+            console.log(error) 
+            deferred.reject(new Error(error))
+        });
+
+
+        return deferred.promise
+    }
+
+
+
     coluutils.seedMetadata = function seedMetadata(hash) {
         var deferred = Q.defer();
         
@@ -355,7 +452,48 @@ var get_opreturn_data = function (hex) {
             });
 
         return deferred.promise;
-    } 
+    }
+
+
+
+    coluutils.downloadMetadata = function downloadMetadata(hash) {
+        var deferred = Q.defer();
+        
+        if(!hash) {
+          console.log('no metadata to seed')
+          return deferred.resolve()
+        }
+        
+        var args = {
+                    path: { "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImV4cCI6IjIwMTYtMDUtMzBUMjI6MzY6MDUuMzMxWiJ9.hNTUgkQzuMwcFNadg49bOeLUA5hzuHAQWc8le40PNus",
+                            "torrentHash": hash },                      
+                    headers:{"Content-Type": "application/json"} 
+
+                }
+
+
+         client.methods.download(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("download:(200) " + data);
+                var torretdata = JSON.parse(data)
+                deferred.resolve(data);
+            }
+            else if(data) {
+                console.log("download: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error('base response form torrent server'));
+            }
+            else {
+                console.log("download: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('download: something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+
+        return deferred.promise;
+    }  
 
     coluutils.uploadMetadata =  function uploadMetadata(metadata) 
     {
@@ -455,6 +593,41 @@ var get_opreturn_data = function (hex) {
       
     }
 
+
+    function getAssetInfo(assetIs, utxo)
+    {
+        var deferred = Q.defer();
+        var args = {
+                    path: { "assetId": assetIs, "utxo": utxo },
+                    headers:{"Content-Type": "application/json"} 
+                }
+                          try{
+
+      
+        client.methods.getassetinfo(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("getAssetInfo:(200) ");
+                deferred.resolve(JSON.parse(data));
+            }
+            else if(data) {
+                console.log("getassetinfo: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("getassetinfo: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+      }
+      catch(e) { console.log(e) }
+
+        return deferred.promise;
+    }
+
     function getUnspentsByAddress(address)
     {
         var deferred = Q.defer();
@@ -468,7 +641,7 @@ var get_opreturn_data = function (hex) {
         client.methods.getaddressutxos(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getUnspentsByAddress:(200)");
+                console.log("getUnspentsByAddress:(200) ");
                 deferred.resolve(data);
             }
             else if(data) {
@@ -765,13 +938,14 @@ var get_opreturn_data = function (hex) {
         getUnspentsByAddress(metadata.issueAddress)
         .then(function (data) {
             var utxos = JSON.parse(data).utxos
-            console.log('got unspents for ' + metadata.issueAddress + " from block explorer")
+            console.log('got ' + utxos.length + ' unspents for ' + metadata.issueAddress + " from block explorer")
             //add to transaction enough inputs so we can cover the cost
-            //send change if any back to us
+            //send change if any back to us            
             var current = new bn(0);
             cost = new bn(getIssuenceCost(metadata));
             change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
+              utxo.value = Math.round(utxo.value)
               if(utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
@@ -783,13 +957,14 @@ var get_opreturn_data = function (hex) {
                                     utxo.scriptPubKey.asm,
                                     utxo.scriptPubKey.addresses[0])
                   }
+                  console.log('math: ' + current.toNumber() + " " + utxo.value)
                   current = current.add(utxo.value)
                   if(metadata.flags && metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
                   }  
 
               }
-              console.log(current + " " + cost + " " + (current >= cost))
+              console.log(current + " " + cost + " " + (current.comparedTo(cost) >= 0))
               return current.comparedTo(cost) >= 0;
             })
             console.log("hasEnoughEquity: " + hasEnoughEquity)
@@ -878,6 +1053,9 @@ var get_opreturn_data = function (hex) {
            console.log('funding tx ' + metadata.financeOutputTxid)
            tx.addInput( metadata.financeOutputTxid, metadata.financeOutput.n)
            inputsValue.amount += toSatoshi(new bn(metadata.financeOutput.value)).toNumber() 
+           if(metadata.flags.injectPreviousOutput) {
+                tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(metadata.financeOutput.scriptPubKey.hex)
+           }  
            paymentDone = true;
            return paymentDone;
 

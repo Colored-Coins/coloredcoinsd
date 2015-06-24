@@ -168,10 +168,10 @@
      * @apiParam {Number} [financeOutput.scriptPubKey.reqSigs] Number of required signatures to redeem
      * @apiParam {String[]} [financeOutput.scriptPubKey.adresses] Addresses that can redeem
      * @apiParam {String} [financeOutputTxid] Txid containing the vout used for the finance
-     * @apiParam {Object[]} [to] Array of transfer type objects (transfers amount of the specifed asset to specific addresses)
-     * @apiParam {String} [to.address] Address to transfer assets to 
-     * @apiParam {Number} [to.amount] Amount of Asset to transafer
-     * @apiParam {String} [to.assetId] Asset ID of Asset to transafer
+     * @apiParam {Object[]} to Array of transfer type objects (transfers amount of the specifed asset to specific addresses)
+     * @apiParam {String} to.address Address to transfer assets to 
+     * @apiParam {Number} to.amount Amount of Asset to transafer
+     * @apiParam {String} to.assetId Asset ID of Asset to transafer
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the pervious output script to make siging simpler
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   
