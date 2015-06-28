@@ -25,7 +25,8 @@
     "bitcoin": "git://github.com/rottev/node-bitcoin.git#master",
     "le_node": "^0.2.1",
     "log4js": "^0.6.22",
-    "aws-sdk": "^2.1.17"
+    "aws-sdk": "^2.1.17",
+    "express-cors": "^0.0.3"
   },
   "noAnalyze": true,
   "engines": {

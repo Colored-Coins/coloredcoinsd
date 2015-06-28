@@ -4,6 +4,9 @@ if(process.env.NODE_ENV && process.env.NODE_ENV == 'QA')
 var express = require('express');
 var config = require("./config");
 var bodyParser = require('body-parser');
+var cors = require('express-cors')
+ 
+
 
 var fs = require('fs');
 var log4js = require('log4js');
@@ -103,5 +106,10 @@ var options = {
 app.use('/metadata', express.static(__dirname + '/static/metadata', options));
 app.use('/doc',express.static(__dirname + '/doc'))
 app.use('/',express.static(__dirname + '/doc'))
+app.use(cors({
+    allowedOrigins: [
+        'coloredcoins.org', 'colu.co'
+    ]
+}))
 
 app.listen(process.env.PORT || 8080);
