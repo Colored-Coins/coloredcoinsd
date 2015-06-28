@@ -15,7 +15,7 @@ var config = {
       url: "http://testnet.elasticbeanstalk.com"
     },
     torrentServer: {
-      url:"http://development-colu-torrents.elasticbeanstalk.com"
+      url:"http://dev.metadata.coloredcoins.org"
     },
     minfee: 1000,
     writemultisig: true,

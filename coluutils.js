@@ -27,7 +27,7 @@ module.exports = (function () {
          client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
          client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
-         client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "POST")
+         client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
          client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
         //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
         //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
@@ -952,7 +952,7 @@ var get_opreturn_data = function (hex) {
             cost = new bn(getIssuenceCost(metadata));
             change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
-              utxo.value = Math.round(utxo.value)
+              //utxo.value = Math.round(utxo.value)
               if(utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
@@ -971,7 +971,7 @@ var get_opreturn_data = function (hex) {
                   }  
 
               }
-              console.log(current + " " + cost + " " + (current.comparedTo(cost) >= 0))
+              console.log('current amount: ' + current + " projected cost: " + cost + " are were there yet: " + (current.comparedTo(cost) >= 0))
               return current.comparedTo(cost) >= 0;
             })
             console.log("hasEnoughEquity: " + hasEnoughEquity)
