@@ -4,7 +4,7 @@ if(process.env.NODE_ENV && process.env.NODE_ENV == 'QA')
 var express = require('express');
 var config = require("./config");
 var bodyParser = require('body-parser');
-var cors = require('express-cors')
+var cors = require('cors')
  
 
 
@@ -70,6 +70,16 @@ else{
 
 var app = express();
 
+var whitelist = ['http://coloredcoins.org', 'http://colu.co'];
+var corsOptions = {
+  origin: function(origin, callback){
+    var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+     console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
+    callback(null, originIsWhitelisted);
+  }
+};
+
+app.use(cors(corsOptions));    
 
 app.use(bodyParser());
 app.use(function (err, req, res, next) {
@@ -106,10 +116,6 @@ var options = {
 app.use('/metadata', express.static(__dirname + '/static/metadata', options));
 app.use('/doc',express.static(__dirname + '/doc'))
 app.use('/',express.static(__dirname + '/doc'))
-app.use(cors({
-    allowedOrigins: [
-        'coloredcoins.org', 'colu.co'
-    ]
-}))
+
 
 app.listen(process.env.PORT || 8080);

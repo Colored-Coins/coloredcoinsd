@@ -488,7 +488,7 @@ var get_opreturn_data = function (hex) {
             }
             else if(data) {
                 console.log("download: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error('base response form torrent server'));
+                deferred.reject(new Error('no response form torrent server'));
             }
             else {
                 console.log("download: rejecting with: " + response.statusCode);
