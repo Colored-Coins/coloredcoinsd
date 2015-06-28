@@ -969,9 +969,10 @@ var get_opreturn_data = function (hex) {
                   if(metadata.flags && metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
                   }  
-
+                  console.log('current amount: ' + current + " projected cost: " + cost + " are were there yet: " + (current.comparedTo(cost) >= 0))
               }
-              console.log('current amount: ' + current + " projected cost: " + cost + " are were there yet: " + (current.comparedTo(cost) >= 0))
+              else
+                console.log('asser found in utxo: ' + utxo.txid +":" +utxo.index)
               return current.comparedTo(cost) >= 0;
             })
             console.log("hasEnoughEquity: " + hasEnoughEquity)

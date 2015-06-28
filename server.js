@@ -92,6 +92,9 @@ app.use(function (err, req, res, next) {
   
 controllers.register(app);
 
+app.get('/headers', function (req, res, next) {
+    return res.status(200).send({headers: res.headers});
+})
 
 var docs_handler = express.static(__dirname + '/node_modules/swagger-node-express/swagger-ui');
 app.get(/^\/docs(\/.*)?$/, function (req, res, next) {
