@@ -6,7 +6,7 @@
      * it will also get the metadata for that specific utxo which was set by the previous owner of that asset on the blockchain
      *
      * @apiParam {String} assetId Asset unique ID.
-     * @apiParam {utxo} Unspent in <transaction>:<index> format
+     * @apiParam {String} [utxo] Unspent in <transaction>:<index> format
      *
  	* @apiSuccess {Number} divisibility How divisible is the asset
  	* @apiSuccess {String} version Version of protocol as string

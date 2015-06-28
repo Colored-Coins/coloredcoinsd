@@ -104,7 +104,7 @@ module.exports = (function () {
                 "method": "GET",
                 "parameters": [
                     sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
-                    sw.pathParam("utxo", "provide data for secific utxo (optional)", "string", false)
+                    sw.pathParam("utxo", "provide data for secific utxo", "string", true)
                 ],
                 "type": "assetMetadataResponse",
                 "errorResponses": [swagger.errors.notFound('asset')],
@@ -112,7 +112,10 @@ module.exports = (function () {
             },
             'action': function (req, res) {
                 api.getAssetMetadata(req.params.assetId, req.params.utxo).
-                then(function(data) { res.status(200).send(data) }, function(data) { res.status(400).send(data); });
+                then(
+                    function(data) { res.status(200).send(data) }, 
+                    function(err) { res.status(400).send({error: err.message}) } 
+                )
             }
         };
 

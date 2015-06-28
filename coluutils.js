@@ -326,8 +326,15 @@ var get_opreturn_data = function (hex) {
         getAssetInfo(assetId, utxo).
         then(function(data){
           console.log(data)
-          if(!data.issuanceTxid)
-              deferred.reject(new Error('missing issuanceTxid for utxo ' + utxo))
+          if(!data.issuanceTxid) {
+            if(utxo) {
+                console.log('rejecting request since issuanceTxid is missing for specific utxo')
+                deferred.reject(new Error('missing issuanceTxid for utxo: ' + utxo))
+            }
+            else {
+                deferred.resolve(data)
+            }
+          }
           else
           {
             var txid = utxo.split(':')[0]
