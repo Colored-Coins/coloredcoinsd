@@ -737,6 +737,8 @@ var get_opreturn_data = function (hex) {
              var encoder = cc.newTransaction(0x4343, 0x01)
 
               var curentValueInSatoshi = _.sum(tx.ins, function(input) { return input.amount; });
+              console.log('current transaction value: ' + curentValueInSatoshi + ' projected cost: ' + satoshiCost)
+              console.log(tx.ins)
               if(satoshiCost > curentValueInSatoshi) {
                   if(!insertSatoshiToTransaction(utxos, tx, (satoshiCost - curentValueInSatoshi), totalInputs, metadata)) {
                      console.log('not enough satoshi in account for fees')
@@ -841,7 +843,7 @@ var get_opreturn_data = function (hex) {
           console.log(utxo.assets)
             utxo.score = 0;
             utxo.assets.forEach(function(a){
-                console.log('about to asset ' + asset +' to asset ' +a.assetId )
+                console.log('about to check asset ' + asset +' to asset ' +a.assetId + ' with amount: ' + a.amount)
                 if(((a.assetId == asset) && !assetList[asset].done)) { console.log('score += 1'); utxo.score += 1; }
                 if(((a.assetId == asset) && !assetList[asset].done && a.amount >= assetList[key].amount)) { console.log('score' + utxo.score); utxo.score += 100000; }
                 if(a.assetId == key) {console.log('amount += ' + a.amount); foundAmount += a.amount;} 
@@ -859,7 +861,8 @@ var get_opreturn_data = function (hex) {
       
       console.log('adding inputs by assets and amounts')    
       sortedutxo.some(function(utxo) {
-        console.log('interating over ' + utxo )
+        console.log('interating over ')
+        console.log(utxo)
           utxo.assets.forEach(function(asset) {
             try{
               console.log('maybe adding input for ' + asset.assetId )
@@ -877,7 +880,7 @@ var get_opreturn_data = function (hex) {
                     inputvalues.amount += utxo.value
                      console.log('setting input in asset list')
                     assetList[asset.assetId].input = tx.ins.length -1;
-                    if(metadata.flags.injectPreviousOutput) {
+                    if(metadata.flags && metadata.flags.injectPreviousOutput) {
                       tx.ins[tx.ins.length -1].script = 
                       bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
                     }
@@ -952,7 +955,7 @@ var get_opreturn_data = function (hex) {
             cost = new bn(getIssuenceCost(metadata));
             change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
-              //utxo.value = Math.round(utxo.value)
+              utxo.value = Math.round(utxo.value)
               if(utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
@@ -1061,7 +1064,7 @@ var get_opreturn_data = function (hex) {
            console.log('funding tx ' + metadata.financeOutputTxid)
            tx.addInput( metadata.financeOutputTxid, metadata.financeOutput.n)
            inputsValue.amount += toSatoshi(new bn(metadata.financeOutput.value)).toNumber() 
-           if(metadata.flags.injectPreviousOutput) {
+           if( metadata.flags && metadata.flags.injectPreviousOutput) {
                 tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(metadata.financeOutput.scriptPubKey.hex)
            }  
            paymentDone = true;
@@ -1071,17 +1074,22 @@ var get_opreturn_data = function (hex) {
       }
 
        var hasEnoughEquity = utxos.some(function (utxo) {
+            utxo.value = Math.round(utxo.value)
               if(utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + missing)
                   tx.addInput(utxo.txid, utxo.index)
+                  inputsValue.amount += utxo.value
                   currentAmount = currentAmount.add(utxo.value)
-                  if(metadata.flags.injectPreviousOutput) {
+                  if(metadata.flags && metadata.flags.injectPreviousOutput) {
                     tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(utxo.scriptPubKey.hex)
                   }  
 
               }
               return currentAmount.comparedTo(missingbn) >= 0 
+
             })
+
+       console.log("hasEnoughEquity: " + hasEnoughEquity)
 
       return hasEnoughEquity;
     }
