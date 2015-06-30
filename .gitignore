@@ -5,6 +5,7 @@
 web.config
 test-reports.xml
 config-local.js
+nginx.config
 xunit.xml
 
 # Logs
