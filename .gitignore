@@ -6,6 +6,7 @@ web.config
 test-reports.xml
 config-local.js
 nginx.config
+00_nginx_https_rw.config
 xunit.xml
 
 # Logs
