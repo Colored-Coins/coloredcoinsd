@@ -47,7 +47,7 @@ exports.models = {
                 "type": "rules",
                 "description": "section used only if the transaction is a reissueance trasaction"
             },
-            "metadatOfUtxo":{
+            "metadataOfUtxo":{
                 "type": "metadata",
                 "description": "section used only if the transaction is a reissueance trasaction"
             },

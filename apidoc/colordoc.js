@@ -44,18 +44,18 @@
      * @apiSuccess {Object[]} [rulesOfIssuence.holders] Array of holder type objects, they specify in what addresses the asset is considerd valid    
      * @apiSuccess {String} rulesOfIssuence.holders.adress Address where the asset is considerd valid   
      * @apiSuccess {Boolean} rulesOfIssuence.holders.locked Feild to specify if following thransaction of the asset can add to this rule type       
-     * @apiSuccess {Object} [metadatOfUtxo] Metadata of the specific utxo from the transaction   
-     * @apiSuccess {String} [metadatOfUtxo.assetId] Asset Id    
-     * @apiSuccess {String} [metadatOfUtxo.assetName] Asset Name   
-     * @apiSuccess {String} [metadatOfUtxo.assetGenesis] Genisis transaction where the asset was created (in case of re issue)   
-     * @apiSuccess {String} [metadatOfUtxo.issuer] Name of the issuer    
-     * @apiSuccess {String} [metadatOfUtxo.description] description of the asset    
-     * @apiSuccess {Object[]} [metadatOfUtxo.urls] Array of URL type objects    
-     * @apiSuccess {String} metadatOfUtxo.urls.name Name of the url   
-     * @apiSuccess {String} metadatOfUtxo.urls.url The url    
-     * @apiSuccess {String} metadatOfUtxo.urls.mimeType Mime type of the data in the url    
-     * @apiSuccess {String} [metadatOfUtxo.urls.dataHash] If needed hash of the data that in the url (for proof reasons)  
-     * @apiSuccess {JSON} [metadatOfUtxo.userData] Any aribtrary json data that the pervious owner of the output has enterd 
+     * @apiSuccess {Object} [metadataOfUtxo] Metadata of the specific utxo from the transaction   
+     * @apiSuccess {String} [metadataOfUtxo.assetId] Asset Id    
+     * @apiSuccess {String} [metadataOfUtxo.assetName] Asset Name   
+     * @apiSuccess {String} [metadataOfUtxo.assetGenesis] Genisis transaction where the asset was created (in case of re issue)   
+     * @apiSuccess {String} [metadataOfUtxo.issuer] Name of the issuer    
+     * @apiSuccess {String} [metadataOfUtxo.description] description of the asset    
+     * @apiSuccess {Object[]} [metadataOfUtxo.urls] Array of URL type objects    
+     * @apiSuccess {String} metadataOfUtxo.urls.name Name of the url   
+     * @apiSuccess {String} metadataOfUtxo.urls.url The url    
+     * @apiSuccess {String} metadataOfUtxo.urls.mimeType Mime type of the data in the url    
+     * @apiSuccess {String} [metadataOfUtxo.urls.dataHash] If needed hash of the data that in the url (for proof reasons)  
+     * @apiSuccess {JSON} [metadataOfUtxo.userData] Any aribtrary json data that the pervious owner of the output has enterd 
      * @apiSuccess {Object} [rulesofUtxo] Object for the rules of the asset   
      * @apiSuccess {Number} rulesofUtxo.version Version of the rule system   
      * @apiSuccess {Object} rulesofUtxo.fees

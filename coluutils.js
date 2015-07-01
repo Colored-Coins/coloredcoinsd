@@ -187,7 +187,7 @@ var get_opreturn_data = function (hex) {
                         secretAccessKey: process.env.AWSSSK });
 
 
-        var s3bucket = new AWS.S3({params: {Bucket: 'coloredcoin-assets'}});
+        var s3bucket = new metadatOfUtxo({params: {Bucket: 'coloredcoin-assets'}});
         s3bucket.headObject({Key: key}, function(error, headobject){
 
 
@@ -383,7 +383,7 @@ var get_opreturn_data = function (hex) {
                       data.metadataOfIssuence = 'none'
                       data.rulesOfIssuence = 'none'
                       data.sha2Issue = 'none'
-                      data.metadatOfUtxo = 'none'
+                      data.metadataOfUtxo = 'none'
                       data.rulesofUtxo = 'none'
                       data.sha2Utxo = 'none'
                       deferred.resolve(data)
@@ -399,7 +399,7 @@ var get_opreturn_data = function (hex) {
                         data.metadataOfIssuence = first.data
                         data.rulesOfIssuence = first.rules
                         data.sha2Issue = hashes[0].sha2.toString('hex')
-                        data.metadatOfUtxo = metas.length > 1 ? second.data : first.data
+                        data.metadataOfUtxo = metas.length > 1 ? second.data : first.data
                         data.rulesofUtxo = metas.length > 1 ? second.rules : first.rules
                         data.sha2Utxo = metas.length > 1 ? hashes[1].sha2.toString('hex') : hashes[0].sha2.toString('hex')
                         deferred.resolve(data)
