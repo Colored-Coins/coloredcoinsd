@@ -15,64 +15,66 @@
      * @apiSuccess {Number} numOfTransactions Number of transactions that the asset was passed in   
      * @apiSuccess {Number} numOfIssuance Number of times an amount of the asset was issued  
      * @apiSuccess {Number} firstAppearsInBlock First time this asset aapeard in the blockchain (first issue)  
-     * @apiSuccess {Object} [metadataOfIssuence] Metadata of the issuence   
-     * @apiSuccess {String} [metadataOfIssuence.assetId] Asset Id   
-     * @apiSuccess {String} [metadataOfIssuence.assetName] Asset Name   
-     * @apiSuccess {String} [metadataOfIssuence.assetGenesis] Genisis transaction where the asset was created (in case of re issue)  
-     * @apiSuccess {String} [metadataOfIssuence.issuer] Name of the issuer   
-     * @apiSuccess {String} [metadataOfIssuence.description] Description of the asset   
-     * @apiSuccess {Object[]} [metadataOfIssuence.urls] Array of URL type objects   
-     * @apiSuccess {String} metadataOfIssuence.urls.name Name of the url   
-     * @apiSuccess {String} metadataOfIssuence.urls.url The url    
-     * @apiSuccess {String} metadataOfIssuence.urls.mimeType Mime type of the data in the url    
-     * @apiSuccess {String} [metadataOfIssuence.urls.dataHash] If needed hash of the data that in the url (for proof reasons)    
-     * @apiSuccess {JSON} [metadataOfIssuence.userData] Any aribtrary json data that issuer has enterd   
-     * @apiSuccess {Object} [rulesOfIssuence] Object for the rules of the issuence   
-     * @apiSuccess {Number} rulesOfIssuence.version Version of the rule system    
-     * @apiSuccess {Object} [rulesOfIssuence.fees] 
-     * @apiSuccess {Object[]} rulesOfIssuence.fees.items Array of fee type items
-     * @apiSuccess {String} rulesOfIssuence.fees.items.address Address to send the fee
-     * @apiSuccess {String} rulesOfIssuence.fees.items.assetId Asset id to send fee (btc if none asset)
-     * @apiSuccess {Number} rulesOfIssuence.fees.items.value Value to send for the fee (in satoshi or amount)
-     * @apiSuccess {Boolean} rulesOfIssuence.fees.locked Feild to specify if following thransaction of the asset can add to this rule type
-     * @apiSuccess {Object} [rulesOfIssuence.expiration] Experitaion object used to lown an asseet, when asset expires it moves back to last output
-     * @apiSuccess {Number} rulesOfIssuence.expiration.validUntil When the asset is consider expired    
-     * @apiSuccess {Boolean} rulesOfIssuence.expiration.locked Feild to specify if following thransaction of the asset can add to this rule type    
-     * @apiSuccess {Object[]} [rulesOfIssuence.minters] Array of mitnter objects, (addresses that can issue the asset)   
-     * @apiSuccess {String} rulesOfIssuence.minters.address Address of the minter   
-     * @apiSuccess {Boolean} rulesOfIssuence.minters.locked Feild to specify if following thransaction of the asset can add to this rule type (if the minter can add minters)  
-     * @apiSuccess {Object[]} [rulesOfIssuence.holders] Array of holder type objects, they specify in what addresses the asset is considerd valid    
-     * @apiSuccess {String} rulesOfIssuence.holders.adress Address where the asset is considerd valid   
-     * @apiSuccess {Boolean} rulesOfIssuence.holders.locked Feild to specify if following thransaction of the asset can add to this rule type       
-     * @apiSuccess {Object} [metadataOfUtxo] Metadata of the specific utxo from the transaction   
-     * @apiSuccess {String} [metadataOfUtxo.assetId] Asset Id    
-     * @apiSuccess {String} [metadataOfUtxo.assetName] Asset Name   
-     * @apiSuccess {String} [metadataOfUtxo.assetGenesis] Genisis transaction where the asset was created (in case of re issue)   
-     * @apiSuccess {String} [metadataOfUtxo.issuer] Name of the issuer    
-     * @apiSuccess {String} [metadataOfUtxo.description] description of the asset    
-     * @apiSuccess {Object[]} [metadataOfUtxo.urls] Array of URL type objects    
-     * @apiSuccess {String} metadataOfUtxo.urls.name Name of the url   
-     * @apiSuccess {String} metadataOfUtxo.urls.url The url    
-     * @apiSuccess {String} metadataOfUtxo.urls.mimeType Mime type of the data in the url    
-     * @apiSuccess {String} [metadataOfUtxo.urls.dataHash] If needed hash of the data that in the url (for proof reasons)  
-     * @apiSuccess {JSON} [metadataOfUtxo.userData] Any aribtrary json data that the pervious owner of the output has enterd 
-     * @apiSuccess {Object} [rulesofUtxo] Object for the rules of the asset   
-     * @apiSuccess {Number} rulesofUtxo.version Version of the rule system   
-     * @apiSuccess {Object} rulesofUtxo.fees
-     * @apiSuccess {Object[]} [rulesofUtxo.fees.items] Array of fee type items
-     * @apiSuccess {String} rulesofUtxo.fees.items.address Address to send the fee
-     * @apiSuccess {String} rulesofUtxo.fees.items.assetId Asset id to send fee (btc if none asset)
-     * @apiSuccess {Number} rulesofUtxo.fees.items.value Value to send for the fee (in satoshi or amount)
-     * @apiSuccess {Boolean} rulesofUtxo.fees.locked Feild to specify if following thransaction of the asset can add to this rule type
-     * @apiSuccess {Object} [rulesofUtxo.expiration] Experitaion object used to lown an asseet, when asset expires it moves back to last output
-     * @apiSuccess {Number} rulesofUtxo.expiration.validUntil When the asset is consider expired     
-     * @apiSuccess {Boolean} rulesofUtxo.expiration.locked Feild to specify if following thransaction of the asset can add to this rule type    
-     * @apiSuccess {Object[]} [rulesofUtxo.minters] Array of mitnter objects, (addresses that can issue the asset)    
-     * @apiSuccess {String} rulesofUtxo.minters.address Address of the minter   
-     * @apiSuccess {Boolean} rulesofUtxo.minters.locked Feild to specify if following thransaction of the asset can add to this rule type (if the minter can add minters)    
-     * @apiSuccess {Object[]} [rulesofUtxo.holders] Array of holder type objects, they specify in what addresses the asset is considerd valid   
-     * @apiSuccess {String} rulesofUtxo.holders.adress Address where the asset is considerd valid   
-     * @apiSuccess {Boolean} rulesofUtxo.holders.locked Feild to specify if following thransaction of the asset can add to this rule type
+     * @apiSuccess {Object} [metadataOfIssuence] Metadata of the issuence
+     * @apiSuccess {Object} [metadataOfIssuence.data] Data section in the metadata file   
+     * @apiSuccess {String} [metadataOfIssuence.data.assetId] Asset Id   
+     * @apiSuccess {String} [metadataOfIssuence.data.assetName] Asset Name   
+     * @apiSuccess {String} [metadataOfIssuence.data.assetGenesis] Genisis transaction where the asset was created (in case of re issue)  
+     * @apiSuccess {String} [metadataOfIssuence.data.issuer] Name of the issuer   
+     * @apiSuccess {String} [metadataOfIssuence.data.description] Description of the asset   
+     * @apiSuccess {Object[]} [metadataOfIssuence.data.urls] Array of URL type objects   
+     * @apiSuccess {String} metadataOfIssuence.data.urls.name Name of the url   
+     * @apiSuccess {String} metadataOfIssuence.data.urls.url The url    
+     * @apiSuccess {String} metadataOfIssuence.data.urls.mimeType Mime type of the data in the url    
+     * @apiSuccess {String} [metadataOfIssuence.data.urls.dataHash] If needed hash of the data that in the url (for proof reasons)    
+     * @apiSuccess {JSON} [metadataOfIssuence.data.userData] Any aribtrary json data that issuer has enterd   
+     * @apiSuccess {Object} [metadataOfIssuence.rules] Object for the rules of the issuence   
+     * @apiSuccess {Number} metadataOfIssuence.rules.version Version of the rule system    
+     * @apiSuccess {Object} [metadataOfIssuence.rules.fees] 
+     * @apiSuccess {Object[]} metadataOfIssuence.rules.fees.items Array of fee type items
+     * @apiSuccess {String} metadataOfIssuence.rules.fees.items.address Address to send the fee
+     * @apiSuccess {String} metadataOfIssuence.rules.fees.items.assetId Asset id to send fee (btc if none asset)
+     * @apiSuccess {Number} metadataOfIssuence.rules.fees.items.value Value to send for the fee (in satoshi or amount)
+     * @apiSuccess {Boolean} metadataOfIssuence.rules.fees.locked Feild to specify if following thransaction of the asset can add to this rule type
+     * @apiSuccess {Object} [metadataOfIssuence.rules.expiration] Experitaion object used to lown an asseet, when asset expires it moves back to last output
+     * @apiSuccess {Number} metadataOfIssuence.rules.expiration.validUntil When the asset is consider expired    
+     * @apiSuccess {Boolean} metadataOfIssuence.rules.expiration.locked Feild to specify if following thransaction of the asset can add to this rule type    
+     * @apiSuccess {Object[]} [metadataOfIssuence.rules.minters] Array of mitnter objects, (addresses that can issue the asset)   
+     * @apiSuccess {String} metadataOfIssuence.rules.minters.address Address of the minter   
+     * @apiSuccess {Boolean} metadataOfIssuence.rules.minters.locked Feild to specify if following thransaction of the asset can add to this rule type (if the minter can add minters)  
+     * @apiSuccess {Object[]} [metadataOfIssuence.rules.holders] Array of holder type objects, they specify in what addresses the asset is considerd valid    
+     * @apiSuccess {String} metadataOfIssuence.rules.holders.adress Address where the asset is considerd valid   
+     * @apiSuccess {Boolean} metadataOfIssuence.rules.holders.locked Feild to specify if following thransaction of the asset can add to this rule type       
+     * @apiSuccess {Object} [metadataOfUtxo] Metadata of the specific utxo from the transaction
+     * @apiSuccess {Object} [metadataOfUtxo.data] Data section in the metadata file    
+     * @apiSuccess {String} [metadataOfUtxo.data.assetId] Asset Id    
+     * @apiSuccess {String} [metadataOfUtxo.data.assetName] Asset Name   
+     * @apiSuccess {String} [metadataOfUtxo.data.assetGenesis] Genisis transaction where the asset was created (in case of re issue)   
+     * @apiSuccess {String} [metadataOfUtxo.data.issuer] Name of the issuer    
+     * @apiSuccess {String} [metadataOfUtxo.data.description] description of the asset    
+     * @apiSuccess {Object[]} [metadataOfUtxo.data.urls] Array of URL type objects    
+     * @apiSuccess {String} metadataOfUtxo.data.urls.name Name of the url   
+     * @apiSuccess {String} metadataOfUtxo.data.urls.url The url    
+     * @apiSuccess {String} metadataOfUtxo.data.urls.mimeType Mime type of the data in the url    
+     * @apiSuccess {String} [metadataOfUtxo.data.urls.dataHash] If needed hash of the data that in the url (for proof reasons)  
+     * @apiSuccess {JSON} [metadataOfUtxo.data.userData] Any aribtrary json data that the pervious owner of the output has enterd 
+     * @apiSuccess {Object} [metadataOfUtxo.rules] Object for the rules of the asset   
+     * @apiSuccess {Number} metadataOfUtxo.rules.version Version of the rule system   
+     * @apiSuccess {Object} metadataOfUtxo.rules.fees
+     * @apiSuccess {Object[]} [metadataOfUtxo.rules.fees.items] Array of fee type items
+     * @apiSuccess {String} metadataOfUtxo.rules.fees.items.address Address to send the fee
+     * @apiSuccess {String} metadataOfUtxo.rules.fees.items.assetId Asset id to send fee (btc if none asset)
+     * @apiSuccess {Number} metadataOfUtxo.rules.fees.items.value Value to send for the fee (in satoshi or amount)
+     * @apiSuccess {Boolean} metadataOfUtxo.rules.fees.locked Feild to specify if following thransaction of the asset can add to this rule type
+     * @apiSuccess {Object} [metadataOfUtxo.rules.expiration] Experitaion object used to lown an asseet, when asset expires it moves back to last output
+     * @apiSuccess {Number} metadataOfUtxo.rules.expiration.validUntil When the asset is consider expired     
+     * @apiSuccess {Boolean} metadataOfUtxo.rules.expiration.locked Feild to specify if following thransaction of the asset can add to this rule type    
+     * @apiSuccess {Object[]} [metadataOfUtxo.rules.minters] Array of mitnter objects, (addresses that can issue the asset)    
+     * @apiSuccess {String} metadataOfUtxo.rules.minters.address Address of the minter   
+     * @apiSuccess {Boolean} metadataOfUtxo.rules.minters.locked Feild to specify if following thransaction of the asset can add to this rule type (if the minter can add minters)    
+     * @apiSuccess {Object[]} [metadataOfUtxo.rules.holders] Array of holder type objects, they specify in what addresses the asset is considerd valid   
+     * @apiSuccess {String} metadataOfUtxo.rules.holders.adress Address where the asset is considerd valid   
+     * @apiSuccess {Boolean} metadataOfUtxo.rules.holders.locked Feild to specify if following thransaction of the asset can add to this rule type
      * @apiVersion 0.2.0
      * 
      */

@@ -40,19 +40,11 @@ exports.models = {
                 "description": "How divisible is the asset",
             },
             "metadataOfIssuence": {
-                "type": "metadata",
-                "description": "section used only if the transaction is a reissueance trasaction"
-            },
-            "rulesOfIssuence":{
-                "type": "rules",
+                "type": "metadataFile",
                 "description": "section used only if the transaction is a reissueance trasaction"
             },
             "metadataOfUtxo":{
-                "type": "metadata",
-                "description": "section used only if the transaction is a reissueance trasaction"
-            },
-            "rulesofUtxo": {
-                "type": "rules",
+                "type": "metadataFile",
                 "description": "section used only if the transaction is a reissueance trasaction"
             }
         }

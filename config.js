@@ -41,6 +41,7 @@ else{
   config.bitcoind.path = process.env.BITCOIND_PATH || config.bitcoind.path
   config.torrentServer.url = process.env.TORRENT_SERVER_URL || config.torrentServer.url
   config.testnet =  process.env.TESTNET || config.testnet
+  config.torrentServer.token =  process.env.TORRENT_SERVER_TOKEN || config.torrentServer.token
 
   module.exports = config;
 }

@@ -380,28 +380,18 @@ var get_opreturn_data = function (hex) {
                      getHashes.push(self.downloadMetadata(sha1))
                   })
                   if(getHashes.length == 0) {
-                      data.metadataOfIssuence = 'none'
-                      data.rulesOfIssuence = 'none'
-                      data.sha2Issue = 'none'
-                      data.metadataOfUtxo = 'none'
-                      data.rulesofUtxo = 'none'
-                      data.sha2Utxo = 'none'
                       deferred.resolve(data)
                   }
                   else {
                     Q.all(getHashes).done(function(metas){
                         var first = JSON.parse(metas[0])
                         var second = metas.length > 1 ? JSON.parse(metas[1]) : first
-                        first.rules = first.rules || 'none'
-                        first.data = first.data || 'none'
-                        second.rules = second.rules || 'none'
-                        second.data = second.data || 'none'
-                        data.metadataOfIssuence = first.data
-                        data.rulesOfIssuence = first.rules
+                        data.metadataOfIssuence = first
                         data.sha2Issue = hashes[0].sha2.toString('hex')
-                        data.metadataOfUtxo = metas.length > 1 ? second.data : first.data
-                        data.rulesofUtxo = metas.length > 1 ? second.rules : first.rules
-                        data.sha2Utxo = metas.length > 1 ? hashes[1].sha2.toString('hex') : hashes[0].sha2.toString('hex')
+                        if(metas.length > 1){
+                          data.metadataOfUtxo = second
+                          data.sha2Utxo = hashes[1].sha2.toString('hex')
+                        }
                         deferred.resolve(data)
                      }, function(err){
                         deferred.reject(new Error(err))
@@ -423,15 +413,16 @@ var get_opreturn_data = function (hex) {
 
 
     coluutils.seedMetadata = function seedMetadata(hash) {
-        var deferred = Q.defer();
-        
+        var deferred = Q.defer()
+        var token = config.torrentServer.token
+
         if(!hash) {
           console.log('no metadata to seed')
           return deferred.resolve()
         }
         
         var args = {
-                    path: { "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImV4cCI6IjIwMTYtMDUtMzBUMjI6MzY6MDUuMzMxWiJ9.hNTUgkQzuMwcFNadg49bOeLUA5hzuHAQWc8le40PNus",
+                    path: { "token": token,
                             "torrentHash": hash },                      
                     headers:{"Content-Type": "application/json"} 
 
@@ -464,7 +455,8 @@ var get_opreturn_data = function (hex) {
 
 
     coluutils.downloadMetadata = function downloadMetadata(hash) {
-        var deferred = Q.defer();
+        var deferred = Q.defer()
+        var token = config.torrentServer.token
         
         if(!hash) {
           console.log('no metadata to seed')
@@ -472,7 +464,7 @@ var get_opreturn_data = function (hex) {
         }
         
         var args = {
-                    path: { "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImV4cCI6IjIwMTYtMDUtMzBUMjI6MzY6MDUuMzMxWiJ9.hNTUgkQzuMwcFNadg49bOeLUA5hzuHAQWc8le40PNus",
+                    path: { "token": token,
                             "torrentHash": hash },                      
                     headers:{"Content-Type": "application/json"} 
 
@@ -504,24 +496,24 @@ var get_opreturn_data = function (hex) {
 
     coluutils.uploadMetadata =  function uploadMetadata(metadata) 
     {
-      console.log('uploadMetadata');
-      var deferred = Q.defer();
-
+      console.log('uploadMetadata')
+      var deferred = Q.defer()
+      var token = config.torrentServer.token
 
       console.log(metadata.metadata)
       if(!metadata.metadata && !metadata.rules) {
         console.log('uploadMetadata: no metadata and no rules')
-        deferred.resolve(metadata);
-        return deferred.promise;
+        deferred.resolve(metadata)
+        return deferred.promise
       }
         var metafile = {}
         if(metadata.metadata)
           metafile.data = metadata.metadata
         if(metadata.rules)
-          metafile.rules =metadata.rules
+          metafile.rules = metadata.rules
             
         var args = {
-                    path: { "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImV4cCI6IjIwMTYtMDUtMzBUMjI6MzY6MDUuMzMxWiJ9.hNTUgkQzuMwcFNadg49bOeLUA5hzuHAQWc8le40PNus" },
+                    path: { "token": token },
                     data : {
                       "metadata": metafile
                     },
