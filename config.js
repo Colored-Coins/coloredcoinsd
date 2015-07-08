@@ -20,6 +20,7 @@ var config = {
     minfee: 1000,
     writemultisig: true,
     mindustvalue: 600,
+    mindustvaluemultisig: 700,
     checkFinanaceValidty: true
 }
 

@@ -26,6 +26,7 @@ module.exports = (function () {
          client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
          client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
          client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
+         client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
          client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
          client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
@@ -593,6 +594,42 @@ var get_opreturn_data = function (hex) {
     }
 
 
+coluutils.requestParseTx = function requestParseTx(txid)
+    {
+        var deferred = Q.defer();
+        var args = {
+                    data: { "txid": txid },
+                    headers:{"Content-Type": "application/json"} 
+                }
+                          try{
+
+      
+        client.methods.preparsetx(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("requestParseTx:(200) ");
+                deferred.resolve(JSON.parse(data));
+            }
+            else if(data) {
+                console.log("requestParseTx: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("requestParseTx: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+      }
+      catch(e) { console.log(e) }
+
+        return deferred.promise;
+    }
+
+
+
     function getAssetInfo(assetIs, utxo)
     {
         var deferred = Q.defer();
@@ -738,11 +775,6 @@ var get_opreturn_data = function (hex) {
                     return;
                   }
               }
-
-             // done with the inputs now add outputs and encode
-             if(metadata.rules || metadata.metadata){
-              //TODO: HASHES so we maybe drop them in first output
-             }
 
              for( asset in assetList)
              {
@@ -1193,7 +1225,7 @@ var get_opreturn_data = function (hex) {
 
       var script = bitcoinjs.Script.fromChunks(chunks)
 
-      tx.outs.unshift({ script: script, value: config.mindustvalue })
+      tx.outs.unshift({ script: script, value: config.mindustvaluemultisig })
     }
 
     function sha256(buffer) {
