@@ -1089,9 +1089,10 @@ coluutils.requestParseTx = function requestParseTx(txid)
       console.log("missing: " +  missing);
       var paymentDone = false;
       var missingbn = new bn(missing)
-      var financeValue = new bn(metadata.financeOutput.value)
+      var financeValue = new bn(0)
       var currentAmount = new bn(0)
       if(metadata.financeOutput && metadata.financeOutputTxid) {
+        financeValue = new bn(metadata.financeOutput.value)
         console.log('finance sent through api with value ' + financeValue.toNumber())
         if(financeValue.minus(missingbn) >= 0)
         {
