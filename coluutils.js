@@ -301,8 +301,6 @@ var get_opreturn_data = function (hex) {
 
       args.tx.addOutput(ret, 0);
 
-      // add change
-      args.tx.addOutput(metadata.issueAddress , args.change);
 
       // need to encode hashes in first tx
       if(addMultisig) {
@@ -314,6 +312,15 @@ var get_opreturn_data = function (hex) {
           throw new Error('have hashes and enough room we offested inputs for nothing')
 
       }
+
+      console.log(args)
+      // add change
+      var allOutputValues =  _.sum(args.tx.outs, function(output) { return output.value; });
+      console.log('all inputs: ' + args.totalInputs.amount + ' all outputs: ' + allOutputValues);
+      var lastOutputValue = args.totalInputs.amount - (allOutputValues + metadata.fee)
+      console.log('adding change output with: ' + lastOutputValue)
+      args.tx.addOutput(metadata.issueAddress , lastOutputValue ? lastOutputValue : args.change);
+
 
       return args.tx
 
@@ -434,7 +441,7 @@ var get_opreturn_data = function (hex) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("seed:(200) " + data);
-                var torretdata = JSON.parse(data)
+                //var torretdata = JSON.parse(data)
                 deferred.resolve(data);
             }
             else if(data) {
@@ -931,6 +938,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
     function addInputsForIssueTransaction(tx, metadata) {
         var deferred = Q.defer()
+        var totalInputs = { amount: 0 }
         //var metadata = JSON.parse(metadata)
         var assetId = ''
         
@@ -950,7 +958,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
           
           console.log("adding utxo from api")
           tx.addInput(metadata.financeOutputTxid, metadata.financeOutput.n)
-          if(metadata.flags.injectPreviousOutput) {
+          if(metadata.flags && metadata.flags.injectPreviousOutput) {
                tx.ins[tx.ins.length -1].script = 
                   bitcoinjs.Script.fromHex (metadata.financeOutput.scriptPubKey.hex)
           }
@@ -959,9 +967,10 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 metadata.financeOutputTxid,
                 metadata.financeOutput.n,
                 metadata.financeOutput.scriptPubKey.asm,
-                metadata.financeOutput.scriptPubKey.addresses[0])
+                metadata.financeOutput.scriptPubKey.addresses[0],
+                metadata.divisibility )
           
-          deferred.resolve({tx: tx, metadata: metadata, change: (toSatoshi(current) - cost), assetId: assetId})
+          deferred.resolve({tx: tx, metadata: metadata, change: current - cost, assetId: assetId, totalInputs: { amount: current }})
           return deferred.promise; 
         }
 
@@ -989,7 +998,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                                     utxo.txid,
                                     utxo.index,
                                     utxo.scriptPubKey.asm,
-                                    utxo.scriptPubKey.addresses[0])
+                                    utxo.scriptPubKey.addresses[0],
+                                    metadata.divisibility)
                   }
                   console.log('math: ' + current.toNumber() + " " + utxo.value)
                   current = current.add(utxo.value)
@@ -1026,11 +1036,12 @@ coluutils.requestParseTx = function requestParseTx(txid)
             }*/
             change = current - cost
             console.log('finished adding inputs to tx')
-            return { success: (toSatoshi(current).comparedTo(cost) > 0), change: change, assetId: assetId};
+            console.log('chnage ' + current)
+            return { success: (current.comparedTo(cost) > 0), change: change, assetId: assetId, totalInputs: { amount: current }};
         }).
         then(function(state) {
           console.log('return the tx to encode')
-          if(state.success) deferred.resolve({tx: tx, metadata: metadata, change: state.change, assetId: assetId});
+          if(state.success) deferred.resolve({tx: tx, metadata: metadata, change: state.change, assetId: assetId, totalInputs: state.totalInputs});
           else  deferred.reject(new Error("Not enough funds to cover issuence"));
         }).
         catch(function(error) {
@@ -1042,11 +1053,12 @@ coluutils.requestParseTx = function requestParseTx(txid)
     }
 
 
-    function encodeAssetIdInfo(reissueable, txid, nvout, asm, address){
+    function encodeAssetIdInfo(reissueable, txid, nvout, asm, address, divisibility){
        var opts = {
               'cc_data': [{
                 'type': 'issuance',
-                'lockStatus': !reissueable
+                'lockStatus': !reissueable,
+                'divisibility': divisibility
               }],
               'vin': [{
                 'txid': txid,
@@ -1077,17 +1089,16 @@ coluutils.requestParseTx = function requestParseTx(txid)
       console.log("missing: " +  missing);
       var paymentDone = false;
       var missingbn = new bn(missing)
+      var financeValue = new bn(metadata.financeOutput.value)
       var currentAmount = new bn(0)
       if(metadata.financeOutput && metadata.financeOutputTxid) {
-        console.log('finance sent through api with value ' + toSatoshi(new bn(metadata.financeOutput.value)).toNumber() )
-        console.log(toSatoshi(new bn(metadata.financeOutput.value)))
-        console.log(missingbn)
-        if(toSatoshi(new bn(metadata.financeOutput.value)).minus(missingbn) >= 0)
+        console.log('finance sent through api with value ' + financeValue.toNumber())
+        if(financeValue.minus(missingbn) >= 0)
         {
           //TODO: check there is no asset here
            console.log('funding tx ' + metadata.financeOutputTxid)
            tx.addInput( metadata.financeOutputTxid, metadata.financeOutput.n)
-           inputsValue.amount += toSatoshi(new bn(metadata.financeOutput.value)).toNumber() 
+           inputsValue.amount += financeValue.toNumber() 
            if( metadata.flags && metadata.flags.injectPreviousOutput) {
                 tx.ins[tx.ins.length -1].script = bitcoinjs.Script.fromHex(metadata.financeOutput.scriptPubKey.hex)
            }  
@@ -1138,7 +1149,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
           })
         }
         if(metaobj.rules || metaobj.metadata)
-           fee += config.writemultisig ? config.mindustvalue  : 0;
+           fee += config.writemultisig ? config.mindustvaluemultisig  : 0;
 
          console.log('projected fee is: ' + fee)
          return fee
@@ -1225,7 +1236,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
       var script = bitcoinjs.Script.fromChunks(chunks)
 
-      tx.outs.unshift({ script: script, value: config.mindustvaluemultisig })
+      //try compute value to pass mindust
+      //TODO: actually comput it with the fee from the api request, this assumes static fee per kb
+      var notmindust = (((script.toBuffer().length + 148) *3) +1) * (config.feePerKb / 1000)
+
+      tx.outs.unshift({ script: script, value: notmindust })
     }
 
     function sha256(buffer) {

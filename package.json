@@ -20,7 +20,7 @@
     "bitcore-p2p": "^0.9.1",
     "redis": "^0.12.1",
     "cc-transaction": "^0.4.0",
-    "cc-assetid-encoder": "^0.3.0",
+    "cc-assetid-encoder": "^0.4.0",
     "bignumber.js": "^2.0.7",
     "bitcoin": "git://github.com/rottev/node-bitcoin.git#master",
     "le_node": "^0.2.1",

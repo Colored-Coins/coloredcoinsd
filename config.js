@@ -21,6 +21,7 @@ var config = {
     writemultisig: true,
     mindustvalue: 600,
     mindustvaluemultisig: 700,
+    feePerKb: 1000,
     checkFinanaceValidty: true
 }
 
@@ -43,6 +44,7 @@ else{
   config.torrentServer.url = process.env.TORRENT_SERVER_URL || config.torrentServer.url
   config.testnet =  process.env.TESTNET || config.testnet
   config.torrentServer.token =  process.env.TORRENT_SERVER_TOKEN || config.torrentServer.token
+  config.feePerKb = process.env.FEEPERKB || config.feePerKb
 
   module.exports = config;
 }
