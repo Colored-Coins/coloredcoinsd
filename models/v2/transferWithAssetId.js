@@ -15,6 +15,18 @@ exports.models = {
             "assetId": {
                 "type": "string",
                 "description": "Id of the asset"
+            },
+            "pubKeys": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "send to a multisig adress instead of an address"
+            },
+            "m": {
+                "type": "integer",
+                "format": "int32",
+                "description": "number of signatures needed to reedeem the multisig"
             }
         }
     }

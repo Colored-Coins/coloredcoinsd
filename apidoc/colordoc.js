@@ -110,7 +110,9 @@
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the pervious output script to make siging simpler
      * @apiParam {Object[]} [transfer] Array of transfer type objects (transfers amount of the issued asset to specific addresses)
      * @apiParam {String} [transfer.address] Address to transfer assets to 
-     * @apiParam {Number} [transfer.amount] Amount of Asset to transafer
+     * @apiParam {Number} transfer.amount Amount of Asset to transafer
+     * @apiParam {String} [transfer.pubKeys] Optional instead of address send the pubkeys as a string array, we create P2SH
+     * @apiParam {String} [transfer.m Number] of signatures required in order to reedem the multisig 
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   
      * @apiParam {String} [metadata.assetId] Asset Id    
      * @apiParam {String} [metadata.assetName] Asset Name   
@@ -171,9 +173,11 @@
      * @apiParam {String[]} [financeOutput.scriptPubKey.adresses] Addresses that can redeem
      * @apiParam {String} [financeOutputTxid] Txid containing the vout used for the finance
      * @apiParam {Object[]} to Array of transfer type objects (transfers amount of the specifed asset to specific addresses)
-     * @apiParam {String} to.address Address to transfer assets to 
+     * @apiParam {String} to.address Address to transfer assets to (any base58 address)
      * @apiParam {Number} to.amount Amount of Asset to transafer
      * @apiParam {String} to.assetId Asset ID of Asset to transafer
+     * @apiParam {String} to.pubKeys Optional instead of address send the pubkeys as a string array, we create P2SH
+     * @apiParam {String} to.m Number of signatures required in order to reedem the multisig 
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the pervious output script to make siging simpler
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   

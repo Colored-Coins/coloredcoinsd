@@ -27,7 +27,8 @@ if(fs.existsSync('/var/log/nodejs.log')) {
   log4js.addAppender(log4js.appenders.file('/var/log/nodejs.log'), 'eblog');
   consoleLogger = log4js.getLogger('eblog');
 }
-//console.log(process.env.NODE_ENV)
+
+
 if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
   console.log=(function() {
     var orig=console.log;

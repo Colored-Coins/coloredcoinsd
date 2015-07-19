@@ -222,8 +222,8 @@ var get_opreturn_data = function (hex) {
         // find inputs to cover the issuence
         addInputsForIssueTransaction(tx, metadata).
         then(function(args){
-            tx = encodeColorScheme(args);
-            deferred.resolve({txHex: tx.toHex(), assetId: args.assetId || "0", metadata: metadata});
+            var txResponse = encodeColorScheme(args);
+            deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata});
         }).
         catch(function(err) {
           deferred.reject(err);
@@ -261,6 +261,7 @@ var get_opreturn_data = function (hex) {
       var addMultisig = false;
       var metadata = args.metadata
       var encoder = cc.newTransaction(0x4343, 0x01)
+      var reedemScripts = []
       encoder.setLockStatus(!metadata.reissueable)
       console.log("amount and div " + metadata.amount+" "+ metadata.divisibility)
       encoder.setAmount(metadata.amount, metadata.divisibility);
@@ -279,7 +280,13 @@ var get_opreturn_data = function (hex) {
         metadata.transfer.forEach(function(transferobj, i){
           console.log("payment " + transferobj.amount + " " + args.tx.outs.length )
           encoder.addPayment(0, transferobj.amount, args.tx.outs.length)
-          args.tx.addOutput(transferobj.address, config.mindustvalue)
+          // check multisig
+          if(transferobj.pubKeys && transferobj.m) {
+             var multisig = generateMultisigAddress(transferobj.pubKeys, transferobj.m)
+             reedemScripts.push({index: tx.outs.length , reedemScript: multisig.reedemScript, address: multisig.address})
+          }
+          else
+            args.tx.addOutput(transferobj.address, config.mindustvalue)
         })
       }
 
@@ -323,7 +330,7 @@ var get_opreturn_data = function (hex) {
       args.tx.addOutput(metadata.issueAddress , lastOutputValue ? lastOutputValue : args.change);
 
 
-      return args.tx
+      return { tx: args.tx, multisigOutputs: reedemScripts}
 
     }
 
@@ -763,6 +770,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
         var totalInputs = { amount: 0 }
+        var reedemScripts = []
 
         console.log('addInputsForSendTransaction')
         
@@ -786,7 +794,14 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   assetList[to.assetId] = { amount: 0, addresses: [], input: 0, done: false, change: 0, encodeAmount: 0 }
                 assetList[to.assetId].amount += to.amount
                 assetList[to.assetId].encodeAmount = assetList[to.assetId].amount;
-                assetList[to.assetId].addresses.push({ address: to.address, amount: to.amount})              
+                // generate a multisig adress, remeber to return the reedem scripts
+                if(!to.address && to.pubKeys && to.m) {
+                    var multisig = generateMultisigAddress(to.pubKeys, to.m)
+                    assetList[to.assetId].addresses.push({ address: multisig.address, amount: to.amount, reedemScript: multisig.reedemScript})
+                }
+                else
+                  assetList[to.assetId].addresses.push({ address: to.address, amount: to.amount})
+                              
              })
 
              console.log('finshed creating per asset list')
@@ -851,6 +866,10 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   encoder.addPayment(currentAsset.input, address.amount, (tx.outs ? tx.outs.length : 0))
                   console.log('putting input in transaction')
                   tx.addOutput(address.address, config.mindustvalue);
+                  if(address.reedemScript) {
+                     reedemScripts.push({index: tx.outs.length -1, reedemScript: address.reedemScript, address: address.address})
+                  }
+                  
                   console.log(tx)
                   console.log('adding output ' + (tx.outs.length -1))
                 })
@@ -908,7 +927,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             // here and return them as well
             tx.addOutput(metadata.from, lastOutputValue);
             console.log('success')
-            deferred.resolve({tx: tx, metadata: metadata });
+            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts });
             return
           }) // then
         } // if
@@ -1023,12 +1042,6 @@ coluutils.requestParseTx = function requestParseTx(txid)
         console.log(metadata)
         //simple mode
         if(metadata.financeOutput) {
-          /*if(metadata.financeOutput.scriptPubKey && 
-                  metadata.financeOutput.scriptPubKey.asm && 
-                  metadata.financeOutput.scriptPubKey.asm.indexOf("OP_RETURN") != -1)
-          {
-              deferred.reject(new Error(''))
-          }*/
 
           current = new bn(metadata.financeOutput.value)
           cost = new bn(getIssuenceCost(metadata))
@@ -1322,7 +1335,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     function getNoneMinDustByScript(script, usefee)
     {
         fee = usefee || config.feePerKb
-        return (((script.toBuffer().length + 148) *3) * ( fee/ 1000)) +1
+        return (((script.toBuffer().length + 148 + 1) *3) * ( fee/ 1000)) +1
     }
 
     function getInputAmountNeededForTx(tx, fee)
@@ -1332,6 +1345,19 @@ coluutils.requestParseTx = function requestParseTx(txid)
             total += getNoneMinDustByScript(output.script, fee)
         })
         return total
+    }
+
+
+    function generateMultisigAddress(pubKeys, m) {
+      var ecpubkeys
+      pubKeys.forEach(function(key){
+        ecpubkeys.push(bitcoinjs.ECPubKey.fromHex(key))
+      })
+      var script = bitcoinjs.scripts.multisigOutput(m, ecpubkeys)
+      var hash = bitcoinjs.crypto.hash160(script.toBuffer())
+      var multisigAdress = new bitcoinjs.Address( hash, 0xc4)
+      var sendto = multisigAdress.toBase58Check()
+      return { address: sendto, reedemScript: script.toHex() }
     }
 
     function sha256(buffer) {

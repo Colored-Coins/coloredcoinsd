@@ -219,6 +219,7 @@ module.exports = (function () {
 
         console.log("issueAsset")
         validateInput(req.body).
+        then(checkParameters).
         then(api.uploadMetadata).
         then(api.createIssueTransaction).
         then(function(data){
@@ -238,6 +239,28 @@ module.exports = (function () {
          res.status(500).send({ error: error.message }) 
     }
 
+
+    function checkParameters(input) {
+        var deferred = Q.defer()
+        if(input && (input.to || input.transfer)) {
+            var transferArr = input.to || input.transfer
+            if(transferArr.some(function(transfer) {
+                if(transfer.address && transfer.pubKeys) {
+                    return true
+                }
+                return false
+            })) { deferred.reject(new Error("can't use both an address and pubKeys, please choose one")) }
+            else if(transferArr.some(function(transfer) {
+                if(transfer.pubKeys && !transfer.m) {
+                    return true
+                }
+                return false
+            })) { deferred.reject(new Error("missing parameter m, number for signatures required for multisig reedem")) }
+        }
+        else
+            deferred.resolve(input);
+        return deferred.promise;
+    }
 
     function validateInput(input, musthave, oneof) {
         var deferred = Q.defer();
@@ -275,11 +298,12 @@ module.exports = (function () {
             //var reqData = JSON.parse(req.body)
             console.log('parsed ok');
             validateInput(req.body, null, ['from', 'sendutxo']).
+            then(checkParameters).
             then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
             then(function(data){
                  api.seedMetadata(data.metadata.sha1)
-                 res.json({ txHex: data.tx.toHex()});
+                 res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
             })
             .catch(function(error){
                  console.log(error)
