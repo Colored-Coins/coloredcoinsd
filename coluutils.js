@@ -26,6 +26,7 @@ module.exports = (function () {
          client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
          client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
          client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
+         client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxo?txid=${txid}&index=${index}", "GET")
          client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
          client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
          client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
@@ -333,7 +334,6 @@ var get_opreturn_data = function (hex) {
 
         getAssetInfo(assetId, utxo).
         then(function(data){
-          console.log(data)
           if(!data.issuanceTxid) {
             if(utxo) {
                 console.log('rejecting request since issuanceTxid is missing for specific utxo')
@@ -557,12 +557,48 @@ var get_opreturn_data = function (hex) {
     function getUnspentArrayByAddressOrUtxo(address, utxo) {
       if(utxo) {
         console.log('using specific utxo: ' + utxo)
-          return getTransastion(utxo.split(':')[0])
+          return getUtxo(utxo.split(':')[0], utxo.split(':')[1] )
       }
       else {
         console.log('using utxo for address: ' + address)
         return getUnspentsByAddress(address)
       }
+    }
+
+
+     function getUtxo(txid, index) {
+
+      var deferred = Q.defer();
+        var args = {
+                    path: { "txid": txid, "index": index},
+                    headers:{"Content-Type": "application/json"} 
+                }
+         try{
+
+      
+        client.methods.gettransaction(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("getUtxo:(200)");
+                deferred.resolve([data]);
+            }
+            else if(data) {
+                console.log("getUtxo: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("getUtxo: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+      }
+      catch(e) { console.log(e) }
+
+        return deferred.promise;
+      
     }
 
     function getTransastion(txid) {
@@ -705,6 +741,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
         return deferred.promise;
     }
 
+    //TODO: break this into a generic fee mechanisem where fee and and total inputs amount are diffrent
+    // inputs amount can be taked from the sent asset as well, fee variable is missleading
     function comupteCost(withfee, metadata ){
        fee = withfee ? config.minfee : 0;
 
@@ -714,10 +752,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
             fee += config.mindustvalue
           })
         }
-        if(!metadata.rules && !metadata.metadata)
-          return fee
-        else
-          return fee + config.writemultisig ? config.mindustvalue  : 0;
+        if(metadata.rules || metadata.metadata)
+          fee += config.writemultisig ? config.mindustvaluemultisig  : 0;
+
+       console.log("comupteCost: " + fee)
+       return fee
     }
 
     function addInputsForSendTransaction(tx, metadata) {
@@ -731,8 +770,15 @@ coluutils.requestParseTx = function requestParseTx(txid)
         if(metadata.from || metadata.sendutxo) {
           getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo)
           .then(function(data){
-            var utxos = JSON.parse(data).utxos
-            console.log('got unspents for ' + metadata.from + " from block explorer")
+             // might get utxo through api or array through address
+            var utxos = JSON.parse(data).utxos || [JSON.parse(data)] 
+            if(metadata.from)  
+                console.log('got unspents for address: ' + metadata.from  + " from block explorer")
+            else {
+              console.log('got unspent: ' + metadata.sendutxo  + " from block explorer")
+              if (utxos[0] && utxos[0].scriptPubKey && utxos[0].scriptPubKey.addresses && utxos[0].scriptPubKey.addresses[0])
+                metadata.from = utxos[0].scriptPubKey.addresses[0]
+            }
              var assetList = []
              metadata.to.forEach(function(to) {
                 console.log(to.assetId)
@@ -771,8 +817,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
              }
              console.log('reached encoder')
              var encoder = cc.newTransaction(0x4343, 0x01)
+            if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
+               deferred.reject(new Error('not enough satoshi in account for fees' ))
+            }
 
-              var curentValueInSatoshi = _.sum(tx.ins, function(input) { return input.amount; });
+             /* var curentValueInSatoshi = _.sum(tx.ins, function(input) { return input.amount; });
               console.log('current transaction value: ' + curentValueInSatoshi + ' projected cost: ' + satoshiCost)
               console.log(tx.ins)
               if(satoshiCost > curentValueInSatoshi) {
@@ -781,7 +830,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                     deferred.reject(new Error('not enough satoshi in account for fees' ))
                     return;
                   }
-              }
+              }*/
 
              for( asset in assetList)
              {
@@ -844,14 +893,23 @@ coluutils.requestParseTx = function requestParseTx(txid)
                                     ]);
 
             tx.addOutput(ret, 0);
-            var allOutputValues =  _.sum(tx.outs, function(output) { return output.value; });
-            console.log('all inputs: ' + totalInputs.amount + ' all outputs: ' + allOutputValues);
-            var lastOutputValue = totalInputs.amount - (allOutputValues + metadata.fee)
-            if(lastOutputValue)
-              tx.addOutput(metadata.from, lastOutputValue);
+            var lastOutputValue = getChangeAmount(tx, metadata.fee, totalInputs)
+            if(lastOutputValue < 0) {
+              console.log('trying to add additionl inputs to cover transaction')
+              satoshiCost = getInputAmountNeededForTx(tx, metadata.fee)
+              if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
+                deferred.reject(new Error('not enough satoshi in account for fees' ))
+                return
+              }
+              lastOutputValue = getChangeAmount(tx, metadata.fee, totalInputs)         
+            }
+            // TODO: make sure we have a from here, even though we try to use first address found in the utxo we want to send
+            // in case we didnt just use an address, there still might not be an address perhaps we should generate a keypair
+            // here and return them as well
+            tx.addOutput(metadata.from, lastOutputValue);
             console.log('success')
             deferred.resolve({tx: tx, metadata: metadata });
-            return;
+            return
           }) // then
         } // if
         else {
@@ -863,6 +921,25 @@ coluutils.requestParseTx = function requestParseTx(txid)
       }
 
         return deferred.promise
+    }
+
+    function getChangeAmount(tx, fee, totalInputValue) {
+      var allOutputValues =  _.sum(tx.outs, function(output) { return output.value; });
+      console.log('getChangeAmount: all inputs: ' + totalInputValue.amount + ' all outputs: ' + allOutputValues)
+      return  (totalInputValue.amount - (allOutputValues + fee))
+    }
+
+
+    function tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost) {
+        console.log('current transaction value: ' + totalInputs.amount + ' projected cost: ' + satoshiCost)
+        console.log(tx.ins)
+        if(satoshiCost > totalInputs.amount) {
+            if(!insertSatoshiToTransaction(utxos, tx, (satoshiCost - totalInputs.amount), totalInputs, metadata)) {
+               console.log('not enough satoshi in account for fees')
+              return false
+            }
+        }
+        return true
     }
 
     function findBestMatchByNeededAssets(utxos, assetList, key, tx, inputvalues, metadata) {
@@ -1009,7 +1086,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   console.log('current amount: ' + current + " projected cost: " + cost + " are were there yet: " + (current.comparedTo(cost) >= 0))
               }
               else
-                console.log('asser found in utxo: ' + utxo.txid +":" +utxo.index)
+                console.log('skipping utxo for input, asset found in utxo: ' + utxo.txid +":" +utxo.index)
               return current.comparedTo(cost) >= 0;
             })
             console.log("hasEnoughEquity: " + hasEnoughEquity)
@@ -1239,9 +1316,22 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
       //try compute value to pass mindust
       //TODO: actually comput it with the fee from the api request, this assumes static fee per kb
-      var notmindust = (((script.toBuffer().length + 148) *3) +1) * (config.feePerKb / 1000)
+      tx.outs.unshift({ script: script, value: getNoneMinDustByScript(script) })
+    }
 
-      tx.outs.unshift({ script: script, value: notmindust })
+    function getNoneMinDustByScript(script, usefee)
+    {
+        fee = usefee || config.feePerKb
+        return (((script.toBuffer().length + 148) *3) * ( fee/ 1000)) +1
+    }
+
+    function getInputAmountNeededForTx(tx, fee)
+    {
+        var total = fee || config.feePerKb
+        tx.outs.forEach(function(output){
+            total += getNoneMinDustByScript(output.script, fee)
+        })
+        return total
     }
 
     function sha256(buffer) {
