@@ -256,10 +256,11 @@ module.exports = (function () {
                 }
                 return false
             })) { deferred.reject(new Error("missing parameter m, number for signatures required for multisig reedem")) }
+            else { deferred.resolve(input) }
         }
         else
-            deferred.resolve(input);
-        return deferred.promise;
+            deferred.resolve(input)
+        return deferred.promise
     }
 
     function validateInput(input, musthave, oneof) {

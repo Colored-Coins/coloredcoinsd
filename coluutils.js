@@ -1355,7 +1355,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
       })
       var script = bitcoinjs.scripts.multisigOutput(m, ecpubkeys)
       var hash = bitcoinjs.crypto.hash160(script.toBuffer())
-      var multisigAdress = new bitcoinjs.Address( hash, 0xc4)
+      var multisigAdress = new bitcoinjs.Address( hash, config.testnet ? 0xc4 : 0x05)
       var sendto = multisigAdress.toBase58Check()
       return { address: sendto, reedemScript: script.toHex() }
     }
