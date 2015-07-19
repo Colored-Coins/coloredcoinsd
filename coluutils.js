@@ -327,6 +327,9 @@ var get_opreturn_data = function (hex) {
       console.log('all inputs: ' + args.totalInputs.amount + ' all outputs: ' + allOutputValues);
       var lastOutputValue = args.totalInputs.amount - (allOutputValues + metadata.fee)
       console.log('adding change output with: ' + lastOutputValue)
+      console.log('total inputs: ' + args.totalInputs.amount)
+      console.log('total fee: ' + metadata.fee)
+      console.log('total output without fee: ' + allOutputValues)
       args.tx.addOutput(metadata.issueAddress , lastOutputValue ? lastOutputValue : args.change);
 
 
@@ -1335,7 +1338,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
     function getNoneMinDustByScript(script, usefee)
     {
         fee = usefee || config.feePerKb
-        return (((script.toBuffer().length + 148 + 1) *3) * ( fee/ 1000)) +1
+        // add 9 to aacount for bitcoind SER_DISK serilaztion before the multiplication
+        return (((config.feePerKb * (script.toBuffer().length + 148 + 9 )) / 1000) * 3) 
     }
 
     function getInputAmountNeededForTx(tx, fee)
