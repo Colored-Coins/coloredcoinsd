@@ -379,16 +379,9 @@ var get_opreturn_data = function (hex) {
                           multisignum =  script.chunks.length - 3;
                           console.log('multisignum: ' + multisignum);
                      }
-                     else {
-                        if(i == 0 && !tx.ccdata[0].torrentHash && multisignum != 3) {
-                          console.log('no metadata anywhere for issue')
-                          return;
-                        }
-                        if(i == 1 && !tx.ccdata[0].sha2 && multisignum >= 2) {
-                          console.log('no metadata anywhere for utxo')
-                          return;
-                        }
-
+                     else if(!tx.ccdata[0].torrentHash) {
+                        console.log('no metadata anywhere for ' + (i ? 'utxo' : 'issue'))
+                        return;
                      }
 
                      var sha1 = tx.ccdata[0].torrentHash || script.chunks[3]
@@ -1006,8 +999,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                     assetList[asset.assetId].done = true
                     console.log('adding input')
                     tx.addInput(utxo.txid, utxo.index);
-                    console.log('setting input value ' + utxo.value)
-                    inputvalues.amount += utxo.value
+                    console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
+                    inputvalues.amount += Math.round(utxo.value)
                      console.log('setting input in asset list')
                     assetList[asset.assetId].input = tx.ins.length -1;
                     if(metadata.flags && metadata.flags.injectPreviousOutput) {
@@ -1201,6 +1194,9 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
         }
       }
+      else
+        console.log('no financeOutput was given')
+
 
        var hasEnoughEquity = utxos.some(function (utxo) {
             utxo.value = Math.round(utxo.value)
