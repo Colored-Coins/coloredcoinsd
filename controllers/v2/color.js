@@ -224,7 +224,7 @@ module.exports = (function () {
         then(api.createIssueTransaction).
         then(function(data){
             api.seedMetadata(data.metadata.sha1)
-            res.status(200).send({txHex: data.txHex, assetId: data.assetId});
+            res.status(200).send({txHex: data.txHex, assetId: data.assetId, multisigOutputs: data.multisigOutputs});
         }).
         catch(function(error) { 
             console.log({ error: error.message, stack: error.stack});
@@ -256,6 +256,13 @@ module.exports = (function () {
                 }
                 return false
             })) { deferred.reject(new Error("missing parameter m, number for signatures required for multisig reedem")) }
+            else if(transferArr.some(function(transfer) {
+                if(!transfer.pubKeys && !transfer.address) {
+                    return true
+                }
+                return false
+            })) { deferred.reject(new Error("missing parameter address or pubKeys in transfer object")) }
+
             else { deferred.resolve(input) }
         }
         else

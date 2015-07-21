@@ -223,7 +223,7 @@ var get_opreturn_data = function (hex) {
         addInputsForIssueTransaction(tx, metadata).
         then(function(args){
             var txResponse = encodeColorScheme(args);
-            deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata});
+            deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs});
         }).
         catch(function(err) {
           deferred.reject(err);
@@ -283,7 +283,8 @@ var get_opreturn_data = function (hex) {
           // check multisig
           if(transferobj.pubKeys && transferobj.m) {
              var multisig = generateMultisigAddress(transferobj.pubKeys, transferobj.m)
-             reedemScripts.push({index: tx.outs.length , reedemScript: multisig.reedemScript, address: multisig.address})
+             reedemScripts.push({index: args.tx.outs.length , reedemScript: multisig.reedemScript, address: multisig.address})
+             args.tx.addOutput(multisig.address, config.mindustvalue)
           }
           else
             args.tx.addOutput(transferobj.address, config.mindustvalue)
@@ -300,6 +301,7 @@ var get_opreturn_data = function (hex) {
         encoder.shiftOutputs()
         buffer = encoder.encode()
         addMultisig = true;
+        reedemScripts.forEach(function(item) { item.index +=1 })
       }
       var ret = bitcoinjs.Script.fromChunks(
                               [
@@ -579,7 +581,7 @@ var get_opreturn_data = function (hex) {
          try{
 
       
-        client.methods.gettransaction(args, function (data, response) {
+        client.methods.getutxo(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("getUtxo:(200)");
@@ -776,10 +778,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
           .then(function(data){
              // might get utxo through api or array through address
             var utxos = JSON.parse(data).utxos || [JSON.parse(data)] 
+            console.log('----------------------------')
+            console.log(utxos)
+            console.log('----------------------------')
             if(metadata.from)  
                 console.log('got unspents for address: ' + metadata.from  + " from block explorer")
             else {
-              console.log('got unspent: ' + metadata.sendutxo  + " from block explorer")
+              console.log('got unspent from parmameter: ' + metadata.sendutxo  + " from block explorer")
               if (utxos[0] && utxos[0].scriptPubKey && utxos[0].scriptPubKey.addresses && utxos[0].scriptPubKey.addresses[0])
                 metadata.from = utxos[0].scriptPubKey.addresses[0]
             }
@@ -806,23 +811,26 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 console.log('working on asset: ' + asset)
                 console.log(utxos)
                 var assetUtxo = utxos.filter(function (element, index, array) {
-                  console.log('checking element ' + element )
+                  console.log('checking element')
+                  console.log(element)
+                  if(!element.assets)    { return false }
+                  
                    return element.assets.some(function(a){
                       console.log('checking ' + a.assetId + ' and '+ asset)
                       return (a.assetId == asset)
                    })
                 })
-                if(assetUtxo) {
+                if(assetUtxo && assetUtxo.length > 0) {
                   console.log("have utxo list")
                   var key = asset;
                    if(!findBestMatchByNeededAssets (assetUtxo, assetList, key, tx, totalInputs, metadata)) {
-                      deferred.reject(new Error('Not Enough aseet of ' + key ))
+                      deferred.reject(new Error('Not Enough of asset: ' + key ))
                       return;
                    }
                 }
                 else {
                   console.log("no utxo list")
-                  deferred.reject(new Error('Not output with asset ' + asset ))
+                  deferred.reject(new Error('Not output with asset: ' + asset ))
                 }
 
              }
@@ -887,6 +895,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
               if(buffer.leftover && buffer.leftover.length > 0)
               {
                   encoder.shiftOutputs()
+                  reedemScripts.forEach(function(item) { item.index += 1 })
                   buffer = encoder.encode()
                   if(buffer.leftover.length == 1)
                         addHashesOutput(tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[0])
@@ -1349,7 +1358,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
 
     function generateMultisigAddress(pubKeys, m) {
-      var ecpubkeys
+      var ecpubkeys = []
       pubKeys.forEach(function(key){
         ecpubkeys.push(bitcoinjs.ECPubKey.fromHex(key))
       })

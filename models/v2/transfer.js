@@ -1,7 +1,7 @@
 exports.models = {
     "transfer": {
         "id": "transfer",
-        "required": ["address", "amount"],
+        "required": ["amount"],
         "properties": {
             "address": {
                 "type": "string",
