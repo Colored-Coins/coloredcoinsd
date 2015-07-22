@@ -760,6 +760,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
         if(metadata.rules || metadata.metadata)
           fee += config.writemultisig ? config.mindustvaluemultisig  : 0;
 
+        fee += config.mindustvalue
+
        console.log("comupteCost: " + fee)
        return fee
     }
@@ -918,7 +920,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
             tx.addOutput(ret, 0);
             var lastOutputValue = getChangeAmount(tx, metadata.fee, totalInputs)
-            if(lastOutputValue < 0) {
+            if(lastOutputValue < config.mindustvalue) {
               console.log('trying to add additionl inputs to cover transaction')
               satoshiCost = getInputAmountNeededForTx(tx, metadata.fee)
               if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
@@ -955,14 +957,16 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
 
     function tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost) {
-        console.log('current transaction value: ' + totalInputs.amount + ' projected cost: ' + satoshiCost)
-        console.log(tx.ins)
+        console.log('tryAddingInputsForFee: current transaction value: ' + totalInputs.amount + ' projected cost: ' + satoshiCost)
         if(satoshiCost > totalInputs.amount) {
             if(!insertSatoshiToTransaction(utxos, tx, (satoshiCost - totalInputs.amount), totalInputs, metadata)) {
                console.log('not enough satoshi in account for fees')
               return false
             }
         }
+        else
+          console.log('No need for additional finance')
+        
         return true
     }
 
@@ -1202,6 +1206,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
            return paymentDone;
 
         }
+        else
+          console.log('finance output not added to transaction finace value: ' + financeValue.toNumber() + ' still needed: ' + missingbn.toNumber())
       }
       else
         console.log('no financeOutput was given')
@@ -1249,6 +1255,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
         }
         if(metaobj.rules || metaobj.metadata)
            fee += config.writemultisig ? config.mindustvaluemultisig  : 0;
+
+         fee += config.mindustvalue
 
          console.log('projected fee is: ' + fee)
          return fee
