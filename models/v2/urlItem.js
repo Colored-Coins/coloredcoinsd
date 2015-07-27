@@ -1,7 +1,7 @@
 exports.models = {
     "urlItem": {
         "id": "urlItem",
-        "required": ["name", "url", "mimeType", "dataHash"],
+        "required": ["name", "url", "mimeType" ],
         "properties": {
             "name": {
                 "type": "string",
