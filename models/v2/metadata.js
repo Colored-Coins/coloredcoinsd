@@ -29,7 +29,14 @@ exports.models = {
                     "$ref": "urlItem"
                 },
                 "description": "section used only if the transaction is a reissueance trasaction"
-            },       
+            },
+            "encryptions": {
+                 "type": "array",
+                "items": {
+                    "$ref": "encryptSection"
+                },
+                "description": "section used only if the transaction is a reissueance trasaction"
+            },      
             "userData": {
                 "type": "json",
                 "description": "section used only if the transaction is a reissueance trasaction"

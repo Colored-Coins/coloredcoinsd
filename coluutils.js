@@ -10,6 +10,7 @@ module.exports = (function () {
     var cc = require('cc-transaction');
     var assetIdencoder = require('cc-assetid-encoder');
     var _ = require('lodash')
+    var rsa = require('node-rsa')
 
 
 
@@ -375,6 +376,12 @@ var get_opreturn_data = function (hex) {
                     console.log(tx)
                     console.log(tx.vout[0].scriptPubKey.hex)
 
+                     if(!i) {
+                      console.log(tx.vin[0])
+                        if(tx.vin[0] && tx.vin[0].previousOutput.addresses[0])
+                          data.issueAddress =  tx.vin[0].previousOutput.addresses[0]
+                     }
+
                      var script = {}
                      if(tx.ccdata[0].multiSig && tx.ccdata[0].multiSig.length > 0) {
                           script = bitcoinjs.Script.fromHex(tx.vout[0].scriptPubKey.hex)
@@ -520,8 +527,18 @@ var get_opreturn_data = function (hex) {
         return deferred.promise
       }
         var metafile = {}
-        if(metadata.metadata)
+        if(metadata.metadata) {
+          var key = tryEncryptData(metadata)
+          if(key && key.error) {
+            deferred.reject(new Error("Encryption error " + key.error))
+            return deferred.promise
+          }
+          else if(key && key.privateKey) {
+            metadata.privateKey = key.privateKey
+          }
+
           metafile.data = metadata.metadata
+        }
         if(metadata.rules)
           metafile.rules = metadata.rules
             
@@ -557,6 +574,31 @@ var get_opreturn_data = function (hex) {
 
         return deferred.promise;
 
+    }
+
+    function tryEncryptData(metadata) {
+      try {
+        if(metadata.metadata && metadata.metadata.encryptions && metadata.metadata.userData) {
+          var oneKey = new rsa({b: 1024})
+          var returnKey = false
+           metadata.metadata.encryptions.forEach(function (encSection){
+              returnKey = returnKey || !encSection.pubKey
+              var section = metadata.metadata.userData[encSection.key]
+              if(section) {
+                  var format = encSection.type + '-public-' +  encSection.format
+                  var key = encSection.pubKey ? new rsa([encSection.pubKey]) : oneKey
+                  var encrypted = key.encrypt(section, 'base64')
+                  metadata.metadata.userData[encSection.key] = encrypted
+                  console.log(encSection.key + ' encrypted to ' + encrypted )
+              }
+           })
+           return { privateKey: returnKey ? oneKey.exportKey('pkcs8').toString('hex') : '' }
+        }
+      }
+      catch(e) {
+        console.log('tryEncryptData: exception' + e)
+        return { error: e }
+      }
     }
 
     function getUnspentArrayByAddressOrUtxo(address, utxo) {
@@ -780,9 +822,6 @@ coluutils.requestParseTx = function requestParseTx(txid)
           .then(function(data){
              // might get utxo through api or array through address
             var utxos = JSON.parse(data).utxos || [JSON.parse(data)] 
-            console.log('----------------------------')
-            console.log(utxos)
-            console.log('----------------------------')
             if(metadata.from)  
                 console.log('got unspents for address: ' + metadata.from  + " from block explorer")
             else {
@@ -966,7 +1005,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         }
         else
           console.log('No need for additional finance')
-        
+
         return true
     }
 

@@ -71,7 +71,6 @@ module.exports = (function () {
         swagger.addPost(sendAsset);
 
 
-
         var broadcastTx = {
             'spec': {
                 "description": "",
@@ -170,7 +169,7 @@ module.exports = (function () {
         swagger.addGet(getHoldingAdressesForAsset);
 
 
-        console.log("color routes added.");
+        console.log(path + ": color routes added.");
 
 
     }
@@ -224,7 +223,10 @@ module.exports = (function () {
         then(api.createIssueTransaction).
         then(function(data){
             api.seedMetadata(data.metadata.sha1)
-            res.status(200).send({txHex: data.txHex, assetId: data.assetId, multisigOutputs: data.multisigOutputs});
+            var response = {txHex: data.txHex, assetId: data.assetId }
+            if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
+            if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
+            res.status(200).send(response);
         }).
         catch(function(error) { 
             console.log({ error: error.message, stack: error.stack});

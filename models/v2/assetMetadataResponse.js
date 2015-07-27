@@ -46,6 +46,10 @@ exports.models = {
             "metadataOfUtxo":{
                 "type": "metadataFile",
                 "description": "section used only if the transaction is a reissueance trasaction"
+            },
+            "issueAddress": {
+                "type": "string",
+                "description": "Version as string (currently 1.0)"
             }
         }
     }
