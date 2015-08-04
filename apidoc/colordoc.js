@@ -124,6 +124,11 @@
      * @apiParam {String} metadata.urls.url The url    
      * @apiParam {String} metadata.urls.mimeType Mime type of the data in the url    
      * @apiParam {String} [metadata.urls.dataHash] If needed hash of the data that in the url (for proof reasons)  
+     * @apiParam {Object[]} [metadata.encryptions] Array of encryptSection type objects
+     * @apiParam {String} [metadata.encryptions.key] The json key of the value to encrypt within the user section
+     * @apiParam {String} [metadata.encryptions.pubKey] Public key we will use for the encryption (rsa pubkey)
+     * @apiParam {String} [metadata.encryptions.format] Input format of the key (accepted values: 'pem', 'der')
+     * @apiParam {String} [metadata.encryptions.type] Type and padding of the key (accepted values: 'pkcs1', 'pkcs8')
      * @apiParam {JSON} [metadata.userData] Any aribtrary json data that the pervious owner of the output has enterd 
      * @apiParam {Object} [rules] Object for the rules of the asset   
      * @apiParam {Number} rules.version Version of the rule system   
@@ -173,11 +178,11 @@
      * @apiParam {String[]} [financeOutput.scriptPubKey.adresses] Addresses that can redeem
      * @apiParam {String} [financeOutputTxid] Txid containing the vout used for the finance
      * @apiParam {Object[]} to Array of transfer type objects (transfers amount of the specifed asset to specific addresses)
-     * @apiParam {String} to.address Address to transfer assets to (any base58 address)
+     * @apiParam {String} [to.address] Address to transfer assets to (any base58 address)
      * @apiParam {Number} to.amount Amount of Asset to transafer
      * @apiParam {String} to.assetId Asset ID of Asset to transafer
-     * @apiParam {String} to.pubKeys Optional instead of address send the pubkeys as a string array, we create P2SH
-     * @apiParam {String} to.m Number of signatures required in order to reedem the multisig 
+     * @apiParam {String} [to.pubKeys Optional] instead of address send the pubkeys as a string array, we create P2SH
+     * @apiParam {String} [to.m] Number of signatures required in order to reedem the multisig 
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the pervious output script to make siging simpler
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   
@@ -191,6 +196,11 @@
      * @apiParam {String} metadata.urls.url The url    
      * @apiParam {String} metadata.urls.mimeType Mime type of the data in the url    
      * @apiParam {String} [metadata.urls.dataHash] If needed hash of the data that in the url (for proof reasons)  
+     * @apiParam {Object[]} [metadata.encryptions] Array of encryptSection type objects
+     * @apiParam {String} [metadata.encryptions.key] The json key of the value to encrypt within the user section
+     * @apiParam {String} [metadata.encryptions.pubKey] Public key we will use for the encryption (rsa pubkey)
+     * @apiParam {String} [metadata.encryptions.format] Input format of the key (accepted values: 'pem', 'der')
+     * @apiParam {String} [metadata.encryptions.type] Type and padding of the key (accepted values: 'pkcs1', 'pkcs8')
      * @apiParam {JSON} [metadata.userData] Any aribtrary json data that the pervious owner of the output has enterd 
      * @apiParam {Object} [rules] Object for the rules of the asset   
      * @apiParam {Number} rules.version Version of the rule system   
