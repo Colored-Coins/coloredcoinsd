@@ -12,11 +12,17 @@ exports.models = {
                 "description": "encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
             },
             "from": {
-                "type": "string",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
                 "description": "Adress to send the asset from"
             },
             "sendutxo": {
-                "type": "string",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
                 "description": "utxo to use for sending the asset itself"
             },
             "financeOutput": {

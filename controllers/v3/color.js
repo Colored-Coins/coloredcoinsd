@@ -25,7 +25,28 @@ module.exports = (function () {
 
 
         
+  //endpoint to send an asset
+         var sendAsset = {
+            'spec': {
+                "description": "",
+                "path": "/sendasset",
+                "notes": "Returns a issued asset",
+                "summary": "",
+                "method": "POST",
+                "parameters": [
+                        sw.bodyParam("sendAssetRequest", "Asset Send Object", "sendAssetRequest")
+                ],
+                "type": "sendAssetResponse",
+                "errorResponses": [swagger.errors.notFound('asset')],
+                "nickname": "sendAsset"
+            },
+            'action': function (req, res) {
+                console.log("send asset action");
+                trySendAsset(req, res);
+            }
+        };
 
+        swagger.addPost(sendAsset);
 
 
          //endpoint to swap an asset with another or btc
@@ -131,6 +152,30 @@ module.exports = (function () {
         }
            
         return deferred.promise;
+    }
+
+
+     function trySendAsset(req, res) {
+        try{
+            //var reqData = JSON.parse(req.body)
+            console.log('parsed ok');
+            validateInput(req.body, null, ['from', 'sendutxo']).
+            then(checkParameters).
+            then(api.uploadMetadata).
+            then(api.createSendAssetTansaction).
+            then(function(data){
+                 api.seedMetadata(data.metadata.sha1)
+                 res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
+            })
+            .catch(function(error){
+                 console.log(error)
+                 res.status(500).send({ error: error.message });
+            });  
+        }
+        catch(e) {
+            console.log(e)
+             res.status(500).send({ error: e.message });
+        }
     }
 
     return color;

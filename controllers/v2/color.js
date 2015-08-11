@@ -138,7 +138,11 @@ module.exports = (function () {
             },
             'action': function (req, res) {
                 api.getAddressInfo(req.params.address).
-                then(function(data) { res.status(200).send(data) }, function(data) { res.status(400).send(data); });
+                then(function(data) {
+                        var jsondata = JSON.parse(data) 
+                        res.status(200).send(Array.isArray(req.params.address) ? jsondata : jsondata[0]) 
+                    },
+                    function(data) { res.status(400).send(data); });
             }
         };
 

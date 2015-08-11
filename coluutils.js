@@ -23,18 +23,17 @@ module.exports = (function () {
     var rpcclient = new rpc.Client(config.bitcoind);
 
     function coluutils() {
-         client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
-         client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
-         client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
-         client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
-         client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxo?txid=${txid}&index=${index}", "GET")
-         client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
-         client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
-         client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
-         client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
-        //coluutils.getBlockCount().then(function() { console.log('count:', arguments[0][1]); } );
-        //coluutils.sendRawTransaction("0100000001c37465105275a6de0163220da4db306cb5815e1f5b76f5868c7d2b7c5b13aa0d0f0000008b483045022100e570db30b46c3758d65cf01c91a1ad6ec068fd2fcec75f22242434fbe2eb13990220268ab329874cba6f962e5ec281ffeb3f86392af36eb7b8bdf2693e608eb59633014104ecf1a1c51032dd523f1a23ca734d3740314b3d7d3db6011b50d50aec4c6e5a1043909082e54fe48b74d84b256b25552f82e9e2316da29485b1c9df003febac3dffffffff0240060000000000001976a91472c383889fc9d4c4658feabe478ae08698120cd888ac00000000000000001976a91496ab0dbf3d61fb63d07da6981cfa5d5341c5587088ac00000000").then(function() { console.log(arguments) } );
-
+       //client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
+       client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressesutxos", "POST")
+       client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
+       client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
+       client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
+       client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxos", "POST")
+      // client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxo?txid=${txid}&index=${index}", "GET")
+       client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
+       client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
+       client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
+       client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
     }
 
     coluutils.sendRawTransaction = function sendRawTransaction(txHex) {     
@@ -602,25 +601,53 @@ var get_opreturn_data = function (hex) {
     }
 
     function getUnspentArrayByAddressOrUtxo(address, utxo) {
-      if(utxo) {
-        console.log('using specific utxo: ' + utxo)
-          return getUtxo(utxo.split(':')[0], utxo.split(':')[1] )
+      var deferred = Q.defer();
+      try{
+        if(utxo) {
+          console.log('using specific utxo: ' + utxo)
+          getUtxo(Array.isArray(utxo) ? utxo : [utxo]).
+          then(function (data) {
+              var jsondata = JSON.parse(data)
+              deferred.resolve(data)
+          })
+        }
+        else {
+          console.log('using utxo for address: ' + address)
+          getUnspentsByAddress(Array.isArray(address) ? address : [address]).
+          then(function (data) {
+              var utxos = []
+              var jsondata = JSON.parse(data)
+              jsondata.forEach(function (item) {
+                item.utxos.forEach(function (utxo) {
+                  utxos.push(utxo)
+                })
+              })
+              deferred.resolve(utxos)
+          })
+        }
       }
-      else {
-        console.log('using utxo for address: ' + address)
-        return getUnspentsByAddress(address)
+      catch(e){
+        deferred.reject(e);
       }
+      return deferred.promise
     }
 
 
-     function getUtxo(txid, index) {
+     function getUtxo(utxo) {
 
       var deferred = Q.defer();
         var args = {
-                    path: { "txid": txid, "index": index},
+                    //path: { "txid": txid, "index": index},
+                    data: {
+                      utxos: []
+                    },
                     headers:{"Content-Type": "application/json"} 
                 }
          try{
+
+          utxo.forEach(function (utxostring) {
+            data.utxos.push({txid: utxostring.split(':')[0], index: utxostring.split(':')[1]})
+          })
 
       
         client.methods.getutxo(args, function (data, response) {
@@ -731,7 +758,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
       
         client.methods.getassetinfo(args, function (data, response) {
-            console.log(data);
+            console.log(data.toString());
             if (response.statusCode == 200) {
                 console.log("getAssetInfo:(200) ");
                 deferred.resolve(JSON.parse(data));
@@ -749,7 +776,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.reject(new Error("Status code was " + err.request.options));
             });
       }
-      catch(e) { console.log(e) }
+      catch(e) { console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); }
 
         return deferred.promise;
     }
@@ -758,14 +785,15 @@ coluutils.requestParseTx = function requestParseTx(txid)
     {
         var deferred = Q.defer();
         var args = {
-                    path: { "address": address },
+                 //   path: { "address": address },
+                    data: {"addresses" : address },
                     headers:{"Content-Type": "application/json"} 
                 }
                           try{
 
       
         client.methods.getaddressutxos(args, function (data, response) {
-            console.log(data);
+            console.log(data.toString());
             if (response.statusCode == 200) {
                 console.log("getUnspentsByAddress:(200) ");
                 deferred.resolve(data);
@@ -783,7 +811,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.reject(new Error("Status code was " + err.request.options));
             });
       }
-      catch(e) { console.log(e) }
+      catch(e) { console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); }
 
         return deferred.promise;
     }
@@ -819,9 +847,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         try{
         if(metadata.from || metadata.sendutxo) {
           getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo)
-          .then(function(data){
-             // might get utxo through api or array through address
-            var utxos = JSON.parse(data).utxos || [JSON.parse(data)] 
+          .then(function(utxos){
             if(metadata.from)  
                 console.log('got unspents for address: ' + metadata.from  + " from block explorer")
             else {
@@ -970,8 +996,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
             }
             // TODO: make sure we have a from here, even though we try to use first address found in the utxo we want to send
             // in case we didnt just use an address, there still might not be an address perhaps we should generate a keypair
-            // here and return them as well
-            tx.addOutput(metadata.from, lastOutputValue);
+            // here and return them as well, also we might have mutiple from addresses
+            tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue);
             console.log('success')
             deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts });
             return
@@ -1116,9 +1142,17 @@ coluutils.requestParseTx = function requestParseTx(txid)
         // tempararly work with bitcoind though 
         // check there is no op_return in tx for the utxo we are about to use
         // TODO: need to check if we can decode it and its ours
-        getUnspentsByAddress(metadata.issueAddress)
+        getUnspentsByAddress([metadata.issueAddress])
         .then(function (data) {
-            var utxos = JSON.parse(data).utxos
+            var jsonresponse = JSON.parse(data)
+            var utxos = []
+            jsonresponse.forEach(function (item) {
+              item.utxos.forEach(function (utxo) {
+                utxos.push(utxo)
+              })
+            })
+
+           // JSON.parse(data).utxos
             console.log('got ' + utxos.length + ' unspents for ' + metadata.issueAddress + " from block explorer")
             //add to transaction enough inputs so we can cover the cost
             //send change if any back to us            
@@ -1184,6 +1218,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         }).
         catch(function(error) {
             console.log(error) 
+            deferred.reject(error)
         });
 
 
@@ -1346,7 +1381,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
 
     coluutils.getAddressInfo = function getAddressInfo(address) {
-        return getUnspentsByAddress(address)
+        return getUnspentsByAddress(Array.isArray(address) ? address : [address])
     }
 
     function getNextOutputValue(metadata) {
