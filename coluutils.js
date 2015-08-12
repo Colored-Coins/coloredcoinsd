@@ -607,8 +607,25 @@ var get_opreturn_data = function (hex) {
           console.log('using specific utxo: ' + utxo)
           getUtxo(Array.isArray(utxo) ? utxo : [utxo]).
           then(function (data) {
+            if(Array.isArray(data)) {
+                var reply = []
+                data.forEach(function (utxolist) {
+                    var utxolistjson = JSON.parse(utxolist)
+                    if(Array.isArray(utxolistjson))
+                    {
+                      utxolistjson.forEach(function (autxo) { reply.push(autxo) })
+                    }
+                    else
+                    {
+                      reply.push(utxolistjson)
+                    }
+                })
+                 deferred.resolve(reply)
+            }
+            else {
               var jsondata = JSON.parse(data)
               deferred.resolve(data)
+            }
           })
         }
         else {
@@ -646,7 +663,7 @@ var get_opreturn_data = function (hex) {
          try{
 
           utxo.forEach(function (utxostring) {
-            data.utxos.push({txid: utxostring.split(':')[0], index: utxostring.split(':')[1]})
+            args.data.utxos.push({txid: utxostring.split(':')[0], index: utxostring.split(':')[1]})
           })
 
       
@@ -897,7 +914,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 }
                 else {
                   console.log("no utxo list")
-                  deferred.reject(new Error('Not output with asset: ' + asset ))
+                  deferred.reject(new Error('No output with asset: ' + asset ))
                 }
 
              }
@@ -990,6 +1007,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
               satoshiCost = getInputAmountNeededForTx(tx, metadata.fee)
               if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
                 deferred.reject(new Error('not enough satoshi in account for fees' ))
+                console.log('rejecting~!!!!!')
                 return
               }
               lastOutputValue = getChangeAmount(tx, metadata.fee, totalInputs)         
@@ -1069,7 +1087,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
               console.log('maybe adding input for ' + asset.assetId )
               if(assetList[asset.assetId] && !assetList[asset.assetId].done) {
                  console.log('probably adding input for ' + asset.assetId )
-                 console.log(assetList[asset.assetId].amount + ' ' + asset.amount)
+                 console.log('transfer request: ' + assetList[asset.assetId].amount + ' availble in utxo: ' + asset.amount)
                 if(assetList[asset.assetId].amount <= asset.amount) {
                     console.log('setting change')
                     assetList[asset.assetId].change = asset.amount - assetList[asset.assetId].amount
