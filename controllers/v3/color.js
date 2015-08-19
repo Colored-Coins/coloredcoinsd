@@ -169,7 +169,7 @@ module.exports = (function () {
             })
             .catch(function(error){
                  console.log(error)
-                 res.status(500).send({ error: error.message });
+                 res.status(error.json ? 404 : 500).send( error.json ? error.json : { error: error.message });
             });  
         }
         catch(e) {

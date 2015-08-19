@@ -226,7 +226,7 @@ var get_opreturn_data = function (hex) {
             deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs});
         }).
         catch(function(err) {
-          deferred.reject(err);
+            deferred.reject(err);
         });
           
 
@@ -328,6 +328,12 @@ var get_opreturn_data = function (hex) {
       var allOutputValues =  _.sum(args.tx.outs, function(output) { return output.value; });
       console.log('all inputs: ' + args.totalInputs.amount + ' all outputs: ' + allOutputValues);
       var lastOutputValue = args.totalInputs.amount - (allOutputValues + metadata.fee)
+      if(lastOutputValue < config.mindustvalue) {
+        var totalmisssing =  (config.mindustvalue - lastOutputValue)  + args.totalInputs.amount.toNumber()
+        var reply = new Error('not enough satoshi to cover issuence')
+        reply.json = {error: 'not enough satoshi to cover issuence', missing: config.mindustvalue - lastOutputValue, fee: metadata.fee, total: totalmisssing}        
+        throw reply
+      }
       console.log('adding change output with: ' + lastOutputValue)
       console.log('total inputs: ' + args.totalInputs.amount)
       console.log('total fee: ' + metadata.fee)
@@ -921,7 +927,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
              console.log('reached encoder')
              var encoder = cc.newTransaction(0x4343, 0x01)
             if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
-               deferred.reject(new Error('not enough satoshi in account for fees' ))
+              var reply = new Error('not enough satoshi in account or fianance for fees')
+              reply.json = {error: 'not enough satoshi in account or fianance to cover sending', missing: satoshiCost - totalInputs.amount, fee: metadata.fee, total: satoshiCost}            
+              deferred.reject(reply)
+              console.log('pay it forward')
+              return  deferred.promise
             }
 
              /* var curentValueInSatoshi = _.sum(tx.ins, function(input) { return input.amount; });
