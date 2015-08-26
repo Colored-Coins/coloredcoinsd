@@ -882,7 +882,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
              metadata.to.forEach(function(to) {
                 console.log(to.assetId)
                 if(!assetList[to.assetId]) 
-                  assetList[to.assetId] = { amount: 0, addresses: [], input: 0, done: false, change: 0, encodeAmount: 0 }
+                  assetList[to.assetId] = { amount: 0, addresses: [], done: false, change: 0, encodeAmount: 0, inputs: [] }
                 assetList[to.assetId].amount += to.amount
                 assetList[to.assetId].encodeAmount = assetList[to.assetId].amount;
                 // generate a multisig adress, remeber to return the reedem scripts
@@ -955,14 +955,16 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   deferred.reject(new Error('Not Enough aseet of ' + asset ))
                   return
                 }
-                
+                console.log(currentAsset.addresses)
                 var uniAssets = _.uniq(currentAsset.addresses, function(item) { return item.address } )
                 console.log(uniAssets)
                 uniAssets.forEach(function(address) {
                   console.log('adding output ' + (tx.outs ? tx.outs.length : 0) + " for address: " + address.address + " with value " + config.mindustvalue)
-                  console.log('mapping to input ' + currentAsset.input + ' with amount ' + address.amount)
-                  encoder.addPayment(currentAsset.input, address.amount, (tx.outs ? tx.outs.length : 0))
-                  console.log('putting input in transaction')
+                  currentAsset.inputs.forEach(function (input) {
+                    console.log('mapping to input ' + input.index + ' with amount ' + input.amount)
+                    encoder.addPayment(input.index, input.amount, (tx.outs ? tx.outs.length : 0))
+                  })
+                  console.log('putting output in transaction')
                   tx.addOutput(address.address, config.mindustvalue);
                   if(address.reedemScript) {
                      reedemScripts.push({index: tx.outs.length -1, reedemScript: address.reedemScript, address: address.address})
@@ -1098,21 +1100,24 @@ coluutils.requestParseTx = function requestParseTx(txid)
               if(assetList[asset.assetId] && !assetList[asset.assetId].done) {
                  console.log('probably adding input for ' + asset.assetId )
                  console.log('transfer request: ' + assetList[asset.assetId].amount + ' availble in utxo: ' + asset.amount)
+                 console.log('adding input')
+                 tx.addInput(utxo.txid, utxo.index);
+                 console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
+                 inputvalues.amount += Math.round(utxo.value)
+                 console.log('setting input in asset list')
+                 //assetList[asset.assetId].input = tx.ins.length -1;
+                 if(metadata.flags && metadata.flags.injectPreviousOutput) {
+                    tx.ins[tx.ins.length -1].script = 
+                    bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
+                 }
+                 assetList[asset.assetId].inputs.push({ index: tx.ins.length -1, amount: asset.amount})
+
                 if(assetList[asset.assetId].amount <= asset.amount) {
                     console.log('setting change')
                     assetList[asset.assetId].change = asset.amount - assetList[asset.assetId].amount
                      console.log('setting done')
                     assetList[asset.assetId].done = true
-                    console.log('adding input')
-                    tx.addInput(utxo.txid, utxo.index);
-                    console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
-                    inputvalues.amount += Math.round(utxo.value)
-                     console.log('setting input in asset list')
-                    assetList[asset.assetId].input = tx.ins.length -1;
-                    if(metadata.flags && metadata.flags.injectPreviousOutput) {
-                      tx.ins[tx.ins.length -1].script = 
-                      bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
-                    }
+
                 }
                 else {
                   assetList[asset.assetId].amount -= asset.amount;
