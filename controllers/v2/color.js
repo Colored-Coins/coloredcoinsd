@@ -7,12 +7,11 @@ module.exports = (function () {
     var Q = require("q");
     var AWS = require("aws-sdk");
     var api = require('../../coluutils.js');
-
+    var ua = require('universal-analytics');
 
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
     creds.AWSSSK = process.env.AWSSSK; 
-    
 
 
     function color() { };
@@ -188,14 +187,15 @@ module.exports = (function () {
      * @apiSuccess {Object} AssetMetadata asset metadata.
      * 
      */
-    function  tryGetAddress(req, res){
-        try{
+    function tryGetAddress(req, res) {
+        try {
             var adder = utils.getAssetAddressId(req.body.address);
             client = redis.createClient();
             client.hmset("addresses", req.body.address, req.body.email, function(err, data){
                 console.log(data);
             });
-             res.json({adress: adder});
+            trySendGoogleAnalyticsEvent(req, 'Get Address');
+            res.json({adress: adder});
         }
         catch(e) {
              res.status(500).send({ error: e.message });
@@ -207,7 +207,8 @@ module.exports = (function () {
         console.log("tryBroadcastAsset")
         api.broadcastTx(req.body.txHex).
         then(function(txid){
-            api.requestParseTx(txid)
+            api.requestParseTx(txid);
+            trySendGoogleAnalyticsEvent(req, 'Broadcast Asset');
             res.status(200).send({txid: txid});
         }).
         catch(function(error) { 
@@ -230,6 +231,7 @@ module.exports = (function () {
             var response = {txHex: data.txHex, assetId: data.assetId }
             if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
             if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
+            trySendGoogleAnalyticsEvent(req, 'Issue Asset');
             res.status(200).send(response);
         }).
         catch(function(error) { 
@@ -307,6 +309,9 @@ module.exports = (function () {
         return deferred.promise;
     }
 
+
+    
+
     function trySendAsset(req, res) {
         try{
             //var reqData = JSON.parse(req.body)
@@ -315,11 +320,12 @@ module.exports = (function () {
             then(checkParameters).
             then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
-            then(function(data){
-                 api.seedMetadata(data.metadata.sha1)
+            then(function(data) {
+                 api.seedMetadata(data.metadata.sha1);
+                 trySendGoogleAnalyticsEvent(req, 'Send Asset');
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
             })
-            .catch(function(error){
+            .catch(function(error) {
                  console.log(error)
                  res.status(error.json ? 404 : 500).send( error.json ? error.json : { error: error.message });
             });  
@@ -333,7 +339,8 @@ module.exports = (function () {
     function trygetAssetStakeholders(req, res) {
         try{
             api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations)
-            .then(function(data){
+            .then(function(data) {
+                 trySendGoogleAnalyticsEvent(req, 'Get Asset Stake Holders');              
                  res.json(data);
             })
             .catch(function(error){
@@ -458,6 +465,25 @@ module.exports = (function () {
 
     function returnIssuedAsset(transaction) {
         return transaction;
+    }
+
+    function trySendGoogleAnalyticsEvent(req, action) {
+         var accountId = config.analytics.accountId;
+         if (accountId) {
+            var visitor = ua(accountId, {https: true});
+            var params = {};
+            params.ec = 'API for all'
+            params.ea = action;
+            params.el = 'API';
+
+            params.uip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            params.ua = req.headers['user-agent'];
+
+            visitor.event(params).send();
+         }
+         else {
+            //Do Nothing
+         }
     }
 
     return color;

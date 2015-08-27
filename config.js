@@ -17,6 +17,9 @@ var config = {
     torrentServer: {
       url:"http://dev.metadata.coloredcoins.org"
     },
+    analytics: {
+     accountId: ""
+    },
     minfee: 1000,
     writemultisig: true,
     mindustvalue: 600,
@@ -42,6 +45,7 @@ else{
   config.bitcoind.pass = process.env.BITCOIND_PASS || config.bitcoind.pass
   config.bitcoind.path = process.env.BITCOIND_PATH || config.bitcoind.path
   config.torrentServer.url = process.env.TORRENT_SERVER_URL || config.torrentServer.url
+  config.analytics.accountId = process.env.ANALYTICS_ACCOUNTID || config.analytics.accountId
   config.testnet =  process.env.TESTNET || config.testnet
   config.torrentServer.token =  process.env.TORRENT_SERVER_TOKEN || config.torrentServer.token
   config.feePerKb = process.env.FEEPERKB || config.feePerKb
