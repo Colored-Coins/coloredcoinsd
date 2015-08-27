@@ -471,10 +471,11 @@ module.exports = (function () {
          var accountId = config.analytics.accountId;
          if (accountId) {
             var visitor = ua(accountId, {https: true});
+            var network = config.testnet ? "testnet" : "mainnet"
             var params = {};
             params.ec = 'API for all'
             params.ea = action;
-            params.el = 'API';
+            params.el = 'API_' + network;
 
             params.uip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             params.ua = req.headers['user-agent'];
