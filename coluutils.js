@@ -913,6 +913,10 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 if(assetUtxo && assetUtxo.length > 0) {
                   console.log("have utxo list")
                   var key = asset;
+                  assetUtxo.forEach(function (utxo){ if(utxo.used) {
+                      deferred.reject(new Error('utxo: ' + utxo.id + ' is already spent' ))
+                      return deferred.promise 
+                  } })
                    if(!findBestMatchByNeededAssets (assetUtxo, assetList, key, tx, totalInputs, metadata)) {
                       deferred.reject(new Error('Not Enough of asset: ' + key ))
                       return;
@@ -959,10 +963,25 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 var uniAssets = _.uniq(currentAsset.addresses, function(item) { return item.address } )
                 console.log(uniAssets)
                 uniAssets.forEach(function(address) {
-                  console.log('adding output ' + (tx.outs ? tx.outs.length : 0) + " for address: " + address.address + " with value " + config.mindustvalue)
-                  currentAsset.inputs.forEach(function (input) {
-                    console.log('mapping to input ' + input.index + ' with amount ' + input.amount)
-                    encoder.addPayment(input.index, input.amount, (tx.outs ? tx.outs.length : 0))
+                  console.log('adding output ' + (tx.outs ? tx.outs.length : 0) + " for address: " + address.address + " with satoshi value " + config.mindustvalue + ' asset value: ' + address.amount)
+                  var addressAmountLeft = address.amount
+                  currentAsset.inputs.some(function (input) {
+                    if(!input.amount) { return false }
+                    if(addressAmountLeft - input.amount > 0 ) {
+                        console.log('mapping to input ' + input.index + ' with amount ' + input.amount)
+                        encoder.addPayment(input.index, input.amount, (tx.outs ? tx.outs.length : 0))
+                        addressAmountLeft -= input.amount
+                        console.log('left to map from next input ' + addressAmountLeft)
+                        input.amount = 0
+                        return false
+                    }
+                    else {
+                        console.log('mapping to input ' + input.index + ' with amount ' + addressAmountLeft)
+                        encoder.addPayment(input.index, addressAmountLeft, (tx.outs ? tx.outs.length : 0))
+                        input.amount -= addressAmountLeft
+                        addressAmountLeft = 0
+                        return true
+                    }
                   })
                   console.log('putting output in transaction')
                   tx.addOutput(address.address, config.mindustvalue);
@@ -1110,16 +1129,18 @@ coluutils.requestParseTx = function requestParseTx(txid)
                     tx.ins[tx.ins.length -1].script = 
                     bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
                  }
-                 assetList[asset.assetId].inputs.push({ index: tx.ins.length -1, amount: asset.amount})
-
+                 
                 if(assetList[asset.assetId].amount <= asset.amount) {
+                    var totalamount = asset.amount
+                    assetList[asset.assetId].inputs.forEach(function (input) { totalamount += input.amount })
+                    assetList[asset.assetId].inputs.push({ index: tx.ins.length -1, amount: assetList[asset.assetId].amount})          
                     console.log('setting change')
-                    assetList[asset.assetId].change = asset.amount - assetList[asset.assetId].amount
-                     console.log('setting done')
+                    assetList[asset.assetId].change = totalamount - assetList[asset.assetId].amount
+                    console.log('setting done')
                     assetList[asset.assetId].done = true
-
                 }
                 else {
+                  assetList[asset.assetId].inputs.push({ index: tx.ins.length -1, amount: asset.amount})
                   assetList[asset.assetId].amount -= asset.amount;
                 } 
               }
