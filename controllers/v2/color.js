@@ -473,7 +473,7 @@ module.exports = (function () {
             var category = 'API for all';
             var label = 'API_' + network;
 
-            visitor.event(category, action, label).send();
+            req.visitor.event(category, action, label).send();
          }
          else {
             console.log('Wont send analytics event, no accountId');
