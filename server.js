@@ -82,7 +82,9 @@ var corsOptions = {
 
 app.use(cors(corsOptions));    
 
-app.use(bodyParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(function (err, req, res, next) {
     if (err) {
         console.log(err);
