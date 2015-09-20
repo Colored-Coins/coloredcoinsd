@@ -7,7 +7,6 @@ module.exports = (function () {
     var Q = require("q");
     var AWS = require("aws-sdk");
     var api = require('../../coluutils.js');
-    var ua = require('universal-analytics');
 
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
@@ -468,22 +467,16 @@ module.exports = (function () {
     }
 
     function trySendGoogleAnalyticsEvent(req, action) {
-         var accountId = config.analytics.accountId;
-         if (accountId) {
-            var visitor = ua(accountId, {https: true});
-            var network = config.testnet ? "testnet" : "mainnet"
-            var params = {};
-            params.ec = 'API for all'
-            params.ea = action;
-            params.el = 'API_' + network;
+         if (req.visitor) {
+            var network = config.testnet ? "testnet" : "mainnet";
+            
+            var category = 'API for all';
+            var label = 'API_' + network;
 
-            params.uip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-            params.ua = req.headers['user-agent'];
-
-            visitor.event(params).send();
+            visitor.event(category, action, label).send();
          }
          else {
-            //Do Nothing
+            console.log('Wont send analytics event, no accountId');
          }
     }
 
