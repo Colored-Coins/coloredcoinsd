@@ -87,7 +87,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 var accountId = config.analytics.accountId;
 if (accountId){
-  express.use(ua.middleware(config.analytics.accountId, {cookieName: '_ga'}));  
+  app.use(ua.middleware(config.analytics.accountId, {cookieName: '_ga'}));  
 }
 
 
