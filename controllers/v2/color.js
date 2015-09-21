@@ -469,11 +469,8 @@ module.exports = (function () {
     function trySendGoogleAnalyticsEvent(req, action) {
          if (req.visitor) {
             var network = config.testnet ? "testnet" : "mainnet";
-            
-            var category = 'API for all';
-            var label = 'API_' + network;
-
-            req.visitor.event(category, action, label).send();
+            var category = 'API_' + network;
+            req.visitor.event(category, action).send();
          }
          else {
             console.log('Wont send analytics event, no accountId');
