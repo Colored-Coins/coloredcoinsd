@@ -8,11 +8,9 @@ module.exports = (function () {
     var AWS = require("aws-sdk");
     var api = require('../../coluutils.js');
 
-
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
     creds.AWSSSK = process.env.AWSSSK; 
-    
 
 
     function color() { };
@@ -190,14 +188,15 @@ module.exports = (function () {
      * @apiSuccess {Object} AssetMetadata asset metadata.
      * 
      */
-    function  tryGetAddress(req, res){
-        try{
+    function tryGetAddress(req, res) {
+        try {
             var adder = utils.getAssetAddressId(req.body.address);
             client = redis.createClient();
             client.hmset("addresses", req.body.address, req.body.email, function(err, data){
                 console.log(data);
             });
-             res.json({adress: adder});
+            trySendGoogleAnalyticsEvent(req, 'Get Address');
+            res.json({adress: adder});
         }
         catch(e) {
              res.status(500).send({ error: e.message });
@@ -209,7 +208,8 @@ module.exports = (function () {
         console.log("tryBroadcastAsset")
         api.broadcastTx(req.body.txHex).
         then(function(txid){
-            api.requestParseTx(txid)
+            api.requestParseTx(txid);
+            trySendGoogleAnalyticsEvent(req, 'Broadcast Asset');
             res.status(200).send({txid: txid});
         }).
         catch(function(error) { 
@@ -232,6 +232,7 @@ module.exports = (function () {
             var response = {txHex: data.txHex, assetId: data.assetId }
             if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
             if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
+            trySendGoogleAnalyticsEvent(req, 'Issue Asset');
             res.status(200).send(response);
         }).
         catch(function(error) { 
@@ -309,6 +310,9 @@ module.exports = (function () {
         return deferred.promise;
     }
 
+
+    
+
     function trySendAsset(req, res) {
         console.log('try send asset v2')
         try{
@@ -318,11 +322,12 @@ module.exports = (function () {
             then(checkParameters).
             then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
-            then(function(data){
-                 api.seedMetadata(data.metadata.sha1)
+            then(function(data) {
+                 api.seedMetadata(data.metadata.sha1);
+                 trySendGoogleAnalyticsEvent(req, 'Send Asset');
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
             })
-            .catch(function(error){
+            .catch(function(error) {
                  console.log(error)
                  res.status(error.json ? 404 : 500).send( error.json ? error.json : { error: error.message });
             });  
@@ -336,7 +341,8 @@ module.exports = (function () {
     function trygetAssetStakeholders(req, res) {
         try{
             api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations)
-            .then(function(data){
+            .then(function(data) {
+                 trySendGoogleAnalyticsEvent(req, 'Get Asset Stake Holders');              
                  res.json(data);
             })
             .catch(function(error){
@@ -460,7 +466,18 @@ module.exports = (function () {
     }
 
     function returnIssuedAsset(transaction) {
-        return transaction;
+        return transaction
+    }
+
+    function trySendGoogleAnalyticsEvent(req, action) {
+         if (req.visitor) {
+            var network = config.testnet === 'true' ? "testnet" : "mainnet"
+            var category = 'API_' + network
+            req.visitor.event(category, action).send()
+         }
+         else {
+            console.log('Wont send analytics event, no accountId')
+         }
     }
 
     return color;

@@ -5,7 +5,7 @@ var express = require('express');
 var config = require("./config");
 var bodyParser = require('body-parser');
 var cors = require('cors')
- 
+var ua = require('universal-analytics'); 
 
 
 var fs = require('fs');
@@ -82,7 +82,15 @@ var corsOptions = {
 
 app.use(cors(corsOptions));    
 
-app.use(bodyParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+var accountId = config.analytics.accountId;
+if (accountId){
+  app.use(ua.middleware(config.analytics.accountId, {cookieName: '_ga'}));  
+}
+
+
 app.use(function (err, req, res, next) {
     if (err) {
         console.log(err);
