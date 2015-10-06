@@ -19,7 +19,7 @@ module.exports = (function () {
 
     console.log("loading color")
 
-    color.registerRoutes = function registerRoutes(app, path, swagger) {
+    color.registerRoutes = function registerRoutes(app, path, swagger, allowAddEndpoint) {
      
 
 
@@ -62,13 +62,15 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "sendAsset"
             },
-            'action': function (req, res) {
+            'action': function sendAsset(req, res) {
                 console.log("send asset action");
                 trySendAsset(req, res);
             }
         };
 
-        swagger.addPost(sendAsset);
+        if(allowAddEndpoint(sendAsset)) {
+            swagger.addPost(sendAsset);
+        }
 
 
         var broadcastTx = {
@@ -308,6 +310,7 @@ module.exports = (function () {
     }
 
     function trySendAsset(req, res) {
+        console.log('try send asset v2')
         try{
             //var reqData = JSON.parse(req.body)
             console.log('parsed ok');

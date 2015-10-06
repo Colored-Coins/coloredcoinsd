@@ -1120,7 +1120,18 @@ coluutils.requestParseTx = function requestParseTx(txid)
                  console.log('probably adding input for ' + asset.assetId )
                  console.log('transfer request: ' + assetList[asset.assetId].amount + ' availble in utxo: ' + asset.amount)
                  console.log('adding input')
-                 tx.addInput(utxo.txid, utxo.index);
+                 var inputIndex = tx.ins.length
+                 if(!tx.ins.some(function (txutxo, i) {
+                    if(txutxo.index == utxo.index && bitcoinjs.bufferutils.reverse(txutxo.hash).toString('hex') == utxo.txid) {
+                      console.log('more assets in same utxo')
+                      inputIndex = i
+                      return true
+                    }
+                    return false
+                 })) {
+                    tx.addInput(utxo.txid, utxo.index);
+                 }
+
                  console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
                  inputvalues.amount += Math.round(utxo.value)
                  console.log('setting input in asset list')
@@ -1133,14 +1144,14 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 if(assetList[asset.assetId].amount <= asset.amount) {
                     var totalamount = asset.amount
                     assetList[asset.assetId].inputs.forEach(function (input) { totalamount += input.amount })
-                    assetList[asset.assetId].inputs.push({ index: tx.ins.length -1, amount: assetList[asset.assetId].amount})          
+                    assetList[asset.assetId].inputs.push({ index: inputIndex, amount: assetList[asset.assetId].amount})          
                     console.log('setting change')
                     assetList[asset.assetId].change = totalamount - assetList[asset.assetId].amount
                     console.log('setting done')
                     assetList[asset.assetId].done = true
                 }
                 else {
-                  assetList[asset.assetId].inputs.push({ index: tx.ins.length -1, amount: asset.amount})
+                  assetList[asset.assetId].inputs.push({ index: inputIndex, amount: asset.amount})
                   assetList[asset.assetId].amount -= asset.amount;
                 } 
               }

@@ -7,10 +7,12 @@ module.exports = function (sw, version) {
     require('fs').readdirSync(__dirname + '/' + version + '/').forEach(function (file) {
         if (file.match(/.+\.js/g) !== null && file !== 'index.js') {
             var name = file.replace('.js', '');
-            exports[name] = require('./' + version + '/' + file );
-            sw.addModels(exports[name]);
-            console.log("adding model: " + name);
-            models.push(exports[name]);
+            if(!sw.hasModel(name)) {
+                console.log("adding model: " + name)
+                exports[name] = require('./' + version + '/' + file );
+                sw.addModels(exports[name])      
+                models.push(exports[name])
+            }
         }
     });
 }

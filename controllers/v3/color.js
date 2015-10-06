@@ -40,8 +40,8 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "sendAsset"
             },
-            'action': function (req, res) {
-                console.log("send asset action");
+            'action': function sendAsset(req, res) {
+                console.log("send asset action v3----------------------");
                 trySendAsset(req, res);
             }
         };
@@ -156,6 +156,7 @@ module.exports = (function () {
 
 
      function trySendAsset(req, res) {
+        console.log('try send asset v3')
         try{
             //var reqData = JSON.parse(req.body)
             console.log('parsed ok');
