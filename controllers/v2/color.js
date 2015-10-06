@@ -463,17 +463,17 @@ module.exports = (function () {
     }
 
     function returnIssuedAsset(transaction) {
-        return transaction;
+        return transaction
     }
 
     function trySendGoogleAnalyticsEvent(req, action) {
          if (req.visitor) {
-            var network = config.testnet ? "testnet" : "mainnet";
-            var category = 'API_' + network;
-            req.visitor.event(category, action).send();
+            var network = config.testnet === 'true' ? "testnet" : "mainnet"
+            var category = 'API_' + network
+            req.visitor.event(category, action).send()
          }
          else {
-            console.log('Wont send analytics event, no accountId');
+            console.log('Wont send analytics event, no accountId')
          }
     }
 
