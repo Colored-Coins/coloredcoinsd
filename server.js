@@ -71,11 +71,13 @@ else{
 
 var app = express();
 
-var whitelist = ['http://coloredcoins.org', 'http://colu.co'];
+var whitelist = ['coloredcoins.org', 'colu.co'];
 var corsOptions = {
   origin: function(origin, callback){
-    var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
-     console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
+    var originIsWhitelisted = whitelist.some(function (neddle) {
+      return origin && origin.endsWith(neddle)
+    })
+    console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
     callback(null, originIsWhitelisted);
   }
 };
