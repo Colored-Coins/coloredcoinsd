@@ -223,7 +223,7 @@ var get_opreturn_data = function (hex) {
         addInputsForIssueTransaction(tx, metadata).
         then(function(args){
             var txResponse = encodeColorScheme(args);
-            deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs});
+            deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs, coloredOutputIndexes: txResponse.coloredOutputIndexes});
         }).
         catch(function(err) {
             deferred.reject(err);
@@ -262,6 +262,7 @@ var get_opreturn_data = function (hex) {
       var metadata = args.metadata
       var encoder = cc.newTransaction(0x4343, 0x01)
       var reedemScripts = []
+      var coloredOutputIndexes = []
       encoder.setLockStatus(!metadata.reissueable)
       console.log("amount and div " + metadata.amount+" "+ metadata.divisibility)
       encoder.setAmount(metadata.amount, metadata.divisibility);
@@ -311,6 +312,11 @@ var get_opreturn_data = function (hex) {
 
       args.tx.addOutput(ret, 0);
 
+      // add array of colored ouput indexes
+      encoder.payments.forEach(function (payment) {
+        coloredOutputIndexes.push(payment.output)
+      })
+
 
       // need to encode hashes in first tx
       if(addMultisig) {
@@ -341,7 +347,7 @@ var get_opreturn_data = function (hex) {
       args.tx.addOutput(metadata.issueAddress , lastOutputValue ? lastOutputValue : args.change);
 
 
-      return { tx: args.tx, multisigOutputs: reedemScripts}
+      return { tx: args.tx, multisigOutputs: reedemScripts, coloredOutputIndexes: coloredOutputIndexes}
 
     }
 
@@ -864,6 +870,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         var satoshiCost = comupteCost(true, metadata)
         var totalInputs = { amount: 0 }
         var reedemScripts = []
+        var coloredOutputIndexes = []
 
         console.log('addInputsForSendTransaction')
         
@@ -1019,6 +1026,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   else
                     throw new Error('have hashes and enough room we offested inputs for nothing')
               }
+
+               // add array of colored ouput indexes
+                encoder.payments.forEach(function (payment) {
+                  coloredOutputIndexes.push(payment.output)
+                })
                  
             }
             catch(e) {
@@ -1048,7 +1060,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             // here and return them as well, also we might have mutiple from addresses
             tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue);
             console.log('success')
-            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts });
+            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts, coloredOutputIndexes: coloredOutputIndexes });
             return
           }) // then
         } // if

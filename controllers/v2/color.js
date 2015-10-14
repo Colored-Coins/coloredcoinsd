@@ -229,7 +229,7 @@ module.exports = (function () {
         then(api.createIssueTransaction).
         then(function(data){
             api.seedMetadata(data.metadata.sha1)
-            var response = {txHex: data.txHex, assetId: data.assetId }
+            var response = {txHex: data.txHex, assetId: data.assetId, coloredOutputIndexes: data.coloredOutputIndexes }
             if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
             if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
             trySendGoogleAnalyticsEvent(req, 'Issue Asset');
