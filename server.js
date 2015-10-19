@@ -93,12 +93,12 @@ if (accountId){
 }
 
 
-app.use(function (err, req, res, next) {
-    if (err) {
-        console.log('Global Error', err);
-        res.send(400,"not valid json");
-    }
-});
+// app.use(function (err, req, res, next) {
+//     if (err) {
+//         console.log('Global Error', err);
+//         res.send(400,"not valid json");
+//     }
+// });
 
   
 controllers.register(app);
