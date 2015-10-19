@@ -75,7 +75,7 @@ var whitelist = ['coloredcoins.org', 'colu.co'];
 var corsOptions = {
   origin: function(origin, callback){
     var originIsWhitelisted = whitelist.some(function (neddle) {
-      return origin && origin.endsWith(neddle)
+      return origin && origin.hasOwnProperty('endsWith') && origin.endsWith(neddle)
     })
     console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
     callback(null, originIsWhitelisted);
@@ -93,12 +93,7 @@ if (accountId){
 }
 
 
-// app.use(function (err, req, res, next) {
-//     if (err) {
-//         console.log('Global Error', err);
-//         res.send(400,"not valid json");
-//     }
-// });
+
 
   
 controllers.register(app);
@@ -132,6 +127,11 @@ app.use('/metadata', express.static(__dirname + '/static/metadata', options));
 app.use('/doc',express.static(__dirname + '/doc'))
 app.use('/',express.static(__dirname + '/doc'))
 
-
+app.use(function (err, req, res, next) {
+    if (err) {
+        console.log('Global Error', err);
+        res.send(400,"not valid json");
+    }
+});
 
 app.listen(process.env.PORT || 8080);
