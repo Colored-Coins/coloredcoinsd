@@ -78,7 +78,7 @@ var whitelist = ['coloredcoins.org', 'colu.co'];
 var corsOptions = {
   origin: function(origin, callback){
     var originIsWhitelisted = whitelist.some(function (neddle) {
-      return origin && origin.hasOwnProperty('endsWith') && origin.endsWith(neddle)
+      return origin && origin.endsWith(neddle)
     })
     console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
     callback(null, originIsWhitelisted);
