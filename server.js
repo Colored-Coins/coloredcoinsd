@@ -79,8 +79,7 @@ var corsOptions = {
     })
     console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + test)
     callback(null, originIsWhitelisted);
-  },
-  allowedHeaders: ['Origin']
+  }
 };
 
 app.use(cors(corsOptions));    
