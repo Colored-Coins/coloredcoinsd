@@ -79,7 +79,8 @@ var corsOptions = {
     })
     console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + test)
     callback(null, originIsWhitelisted);
-  }
+  },
+  allowedHeaders: ['Origin']
 };
 
 app.use(cors(corsOptions));    
@@ -95,7 +96,7 @@ if (accountId){
 
 app.use(function (err, req, res, next) {
     if (err) {
-        console.log(err);
+        console.log('Global Error', err);
         res.send(400,"not valid json");
     }
 });
@@ -125,8 +126,9 @@ var options = {
 
 app.use('/metadata', express.static(__dirname + '/static/metadata', options));
 app.use('/doc',express.static(__dirname + '/doc'))
+app.use('/headers', function (err, req, res, next) { console.log(req.headers); next(); })
 app.use('/',express.static(__dirname + '/doc'))
-app.use('/headers', function (err, req, res, next) { console.log(req.headers)})
+
 
 
 app.listen(process.env.PORT || 8080);
