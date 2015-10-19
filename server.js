@@ -73,11 +73,11 @@ var app = express();
 
 var whitelist = ['coloredcoins.org', 'colu.co'];
 var corsOptions = {
-  origin: function(origin, callback){
+  origin: function(test, callback){
     var originIsWhitelisted = whitelist.some(function (neddle) {
-      return origin && origin.endsWith(neddle)
+      return test && test.endsWith(neddle)
     })
-    console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
+    console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + test)
     callback(null, originIsWhitelisted);
   }
 };
