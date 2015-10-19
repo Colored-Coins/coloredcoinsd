@@ -60,6 +60,9 @@ if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
   })();
 }
 
+String.prototype.endsWith = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
   
 
 if(!process.env.LETOKEN) {
