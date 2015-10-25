@@ -347,7 +347,7 @@ var get_opreturn_data = function (hex) {
       args.tx.addOutput(metadata.issueAddress , lastOutputValue ? lastOutputValue : args.change);
 
 
-      return { tx: args.tx, multisigOutputs: reedemScripts, coloredOutputIndexes: coloredOutputIndexes}
+      return { tx: args.tx, multisigOutputs: reedemScripts, coloredOutputIndexes: _.uniq(coloredOutputIndexes)}
 
     }
 
@@ -1060,7 +1060,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             // here and return them as well, also we might have mutiple from addresses
             tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue);
             console.log('success')
-            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts, coloredOutputIndexes: coloredOutputIndexes });
+            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts, coloredOutputIndexes: _.uniq(coloredOutputIndexes) });
             return
           }) // then
         } // if
@@ -1141,17 +1141,22 @@ coluutils.requestParseTx = function requestParseTx(txid)
                     }
                     return false
                  })) {
-                    tx.addInput(utxo.txid, utxo.index);
+                   tx.addInput(utxo.txid, utxo.index);
+                   console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
+                   inputvalues.amount += Math.round(utxo.value)
+                   console.log('setting input in asset list')
+                   //assetList[asset.assetId].input = tx.ins.length -1;
+                   if(metadata.flags && metadata.flags.injectPreviousOutput) {
+                      tx.ins[tx.ins.length -1].script = 
+                      bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
+                   }
+                 }
+                 else {
+                   //asset split inside same utxo dont count satoshi value just log it
+
                  }
 
-                 console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
-                 inputvalues.amount += Math.round(utxo.value)
-                 console.log('setting input in asset list')
-                 //assetList[asset.assetId].input = tx.ins.length -1;
-                 if(metadata.flags && metadata.flags.injectPreviousOutput) {
-                    tx.ins[tx.ins.length -1].script = 
-                    bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
-                 }
+                
                  
                 if(assetList[asset.assetId].amount <= asset.amount) {
                     var totalamount = asset.amount
