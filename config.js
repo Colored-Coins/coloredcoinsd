@@ -48,10 +48,10 @@ else {
   config.analytics.accountId = process.env.ANALYTICS_ACCOUNTID || config.analytics.accountId
   config.testnet =  process.env.TESTNET || config.testnet
   config.torrentServer.token =  process.env.TORRENT_SERVER_TOKEN || config.torrentServer.token
-  config.minfee = process.env.MINFEE || config.minfee
-  config.mindustvalue = process.env.MINDUSTVALUE || config.mindustvalue
-  config.mindustvaluemultisig = process.env.MINDUSTVALUEMULTISIG || config.mindustvaluemultisig
-  config.feePerKb = process.env.FEEPERKB || config.feePerKb
+  config.minfee = parseInt(process.env.MINFEE || '' + config.minfee) 
+  config.mindustvalue = parseInt(process.env.MINDUSTVALUE || '' + config.mindustvalue)
+  config.mindustvaluemultisig = parseInt(process.env.MINDUSTVALUEMULTISIG || '' + config.mindustvaluemultisig)
+  config.feePerKb = parseInt(process.env.FEEPERKB || '' + config.feePerKb)
 
   module.exports = config;
 }
