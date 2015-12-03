@@ -10,7 +10,7 @@
     "aws-sdk": "^2.1.17",
     "bignumber.js": "^2.0.7",
     "bitcoin": "git://github.com/rottev/node-bitcoin.git#master",
-    "bitcoinjs-lib": "git+https://git@github.com/Colu-platform/bitcoinjs-lib.git#1.5.x",
+    "bitcoinjs-lib": "~1.5.1",
     "bitcore": "^0.9.5",
     "bitcore-p2p": "^0.9.1",
     "body-parser": ">=1.9.0",
