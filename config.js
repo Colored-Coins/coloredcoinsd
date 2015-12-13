@@ -36,7 +36,7 @@ function module_exists( name ) {
 
 if(module_exists('./config-local'))
   module.exports = require('./config-local')
-else{
+else {
   config.blockexplorer.url = process.env.BLOCKEXPLORER_URL || config.blockexplorer.url
   config.machineurl = process.env.MACHINEURL || config.machineurl
   config.bitcoind.host = process.env.BITCOIND_HOST || config.bitcoind.host
@@ -48,7 +48,10 @@ else{
   config.analytics.accountId = process.env.ANALYTICS_ACCOUNTID || config.analytics.accountId
   config.testnet =  process.env.TESTNET || config.testnet
   config.torrentServer.token =  process.env.TORRENT_SERVER_TOKEN || config.torrentServer.token
-  config.feePerKb = process.env.FEEPERKB || config.feePerKb
+  config.minfee = parseInt(process.env.MINFEE || '' + config.minfee) 
+  config.mindustvalue = parseInt(process.env.MINDUSTVALUE || '' + config.mindustvalue)
+  config.mindustvaluemultisig = parseInt(process.env.MINDUSTVALUEMULTISIG || '' + config.mindustvaluemultisig)
+  config.feePerKb = parseInt(process.env.FEEPERKB || '' + config.feePerKb)
 
   module.exports = config;
 }
