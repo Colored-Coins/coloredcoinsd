@@ -29,6 +29,7 @@ module.exports = (function () {
        client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
        client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
        client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxos", "POST")
+       client.registerMethod("broadcasttx", config.blockexplorer.url + "/api/transmit", "POST")
       // client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxo?txid=${txid}&index=${index}", "GET")
        client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
        client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
@@ -43,7 +44,8 @@ module.exports = (function () {
     coluutils.getBlockCount = function getBlockCount() {     
         return callservice('getblockcount');       
     }
-    coluutils.broadcastTx = function broadcastTx(txHex) {
+
+    coluutils.broadcastTxBitcoind = function broadcastTxBitcoind(txHex) {
       return callservice('sendrawtransaction', txHex); 
     }
 
@@ -239,6 +241,7 @@ var get_opreturn_data = function (hex) {
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
         addInputsForSendTransaction(tx, metadata).
+        then(validateFees).
         then(function(data){
             console.log(data.tx)
             deferred.resolve(data);
@@ -253,6 +256,23 @@ var get_opreturn_data = function (hex) {
     }
 
     
+function validateFees(data){
+   var self = this
+   var deferred = Q.defer()
+
+data.tx.ins.forEach( function (input) {
+  console.log('in:' + input.script.buffer.length)
+})
+data.tx.outs.forEach( function (txOut) {
+  console.log('out:' + txOut.script.buffer.length)
+})
+
+    console.log('fee per kb: ' + data.tx.toBuffer().length /1000.0)
+   deferred.resolve(data)
+
+   return deferred.promise;
+
+}
 
 
 
@@ -738,6 +758,43 @@ var get_opreturn_data = function (hex) {
         return deferred.promise;
       
     }
+
+
+
+coluutils.broadcastTx = function broadcastTx(txhex) {
+
+      var deferred = Q.defer();
+        var args = {
+                    data: { "txHex": txhex },
+                    headers:{"Content-Type": "application/json"} 
+                }
+         try{
+
+      
+        client.methods.broadcasttx(args, function (data, response) {
+            console.log(data);
+            if (response.statusCode == 200) {
+                console.log("getTransastion:(200)");
+                deferred.resolve([data]);
+            }
+            else if(data) {
+                console.log("getTransastion: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("getTransastion: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
+      }
+      catch(e) { console.log(e) }
+
+        return deferred.promise;
+      
+    }   
 
 
 coluutils.requestParseTx = function requestParseTx(txid)
@@ -1347,6 +1404,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
       var financeValue = new bn(0)
       var currentAmount = new bn(0)
       if(metadata.financeOutput && metadata.financeOutputTxid) {
+        if(isInputInTx(metadata.financeOutputTxid, metadata.financeOutput.n))
+          return false
         financeValue = new bn(metadata.financeOutput.value)
         console.log('finance sent through api with value ' + financeValue.toNumber())
         if(financeValue.minus(missingbn) >= 0)
@@ -1388,6 +1447,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
        console.log("hasEnoughEquity: " + hasEnoughEquity)
 
       return hasEnoughEquity;
+    }
+
+    function isInputInTx(txid, index) {
+      return tx.ins.some(function (input) {
+        var id = bitcoinjs.bufferutils.reverse(input.hash)
+        return (id.toString('hex') === txid && input.index == index) 
+      })
     }
 
     function getIssuenceCost(metaobj) {

@@ -83,7 +83,7 @@ module.exports = (function () {
                 ],
                 "type": "broadcastTxResponse",
                 "errorResponses": [swagger.errors.notFound('asset')],
-                "nickname": "sendAsset"
+                "nickname": "broadcastTx"
             },
             'action': function (req, res) {
                 console.log("broadcast asset action");
