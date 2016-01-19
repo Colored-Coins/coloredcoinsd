@@ -349,7 +349,7 @@ data.tx.outs.forEach( function (txOut) {
 
       }
 
-      console.log(args)
+     //console.log(args)
       // add change
       var allOutputValues =  _.sum(args.tx.outs, function(output) { return output.value; });
       console.log('all inputs: ' + args.totalInputs.amount + ' all outputs: ' + allOutputValues);
@@ -469,7 +469,8 @@ data.tx.outs.forEach( function (txOut) {
 
         if(!hash) {
           console.log('no metadata to seed')
-          return deferred.resolve()
+           deferred.resolve()
+           return deferred.promise;
         }
         
         var args = {
@@ -511,7 +512,8 @@ data.tx.outs.forEach( function (txOut) {
         
         if(!hash) {
           console.log('no metadata to seed')
-          return deferred.resolve()
+          deferred.resolve()
+          return deferred.promise;
         }
         
         var args = {
@@ -978,7 +980,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   console.log("have utxo list")
                   var key = asset;
                   assetUtxo.forEach(function (utxo){ if(utxo.used) {
-                      deferred.reject(new Error('utxo: ' + utxo.id + ' is already spent' ))
+                      console.log('utxo', utxo)
+                      deferred.reject(new Error('utxo: ' + utxo.txid + ":" + utxo.index + ' is already spent' ))
                       return deferred.promise 
                   } })
                    if(!findBestMatchByNeededAssets (assetUtxo, assetList, key, tx, totalInputs, metadata)) {
@@ -1092,6 +1095,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             }
             catch(e) {
               console.log(e)
+              deferred.reject(e)
             }
             console.log("encoding done")
             var ret = bitcoinjs.Script.fromChunks(
@@ -1300,7 +1304,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
               utxo.value = Math.round(utxo.value)
-              if(utxo.assets.length == 0) {
+              if(!utxo.assets || utxo.assets.length == 0) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
                   if(tx.ins.length == 1) { //encode asset 
