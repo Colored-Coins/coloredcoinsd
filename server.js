@@ -38,7 +38,7 @@ if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
         {
           var args =  Array.prototype.slice.call(arguments);
           args.unshift('info');
-          log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.clone(args, true) : args);
+          log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.cloneDeep(args, true) : args);
         }
     };
   })();  
@@ -54,7 +54,7 @@ if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
         var args =  Array.prototype.slice.call(arguments);
         args.unshift('err');
         orig(args);
-        log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.clone(args, true) : args);
+        log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.cloneDeep(args, true) : args);
       }
     };
   })();
