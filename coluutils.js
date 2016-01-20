@@ -351,7 +351,7 @@ data.tx.outs.forEach( function (txOut) {
 
      //console.log(args)
       // add change
-      var allOutputValues =  _.sum(args.tx.outs, function(output) { return output.value; });
+      var allOutputValues =  _.sumBy(args.tx.outs, function(output) { return output.value; });
       console.log('all inputs: ' + args.totalInputs.amount + ' all outputs: ' + allOutputValues);
       var lastOutputValue = args.totalInputs.amount - (allOutputValues + metadata.fee)
       if(lastOutputValue < config.mindustvalue) {
@@ -1027,7 +1027,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   return
                 }
                 console.log(currentAsset.addresses)
-                var uniAssets = _.uniq(currentAsset.addresses, function(item) { return item.address } )
+                var uniAssets = _.uniqBy(currentAsset.addresses, function(item) { return item.address } )
                 console.log(uniAssets)
                 uniAssets.forEach(function(address) {
                   console.log('adding output ' + (tx.outs ? tx.outs.length : 0) + " for address: " + address.address + " with satoshi value " + config.mindustvalue + ' asset value: ' + address.amount)
@@ -1121,7 +1121,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             // here and return them as well, also we might have mutiple from addresses
             tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue);
             console.log('success')
-            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts, coloredOutputIndexes: _.uniq(coloredOutputIndexes) });
+            deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts, coloredOutputIndexes: _.uniqBy(coloredOutputIndexes) });
             return
           }) // then
         } // if
@@ -1137,7 +1137,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     }
 
     function getChangeAmount(tx, fee, totalInputValue) {
-      var allOutputValues =  _.sum(tx.outs, function(output) { return output.value; });
+      var allOutputValues =  _.sumBy(tx.outs, function(output) { return output.value; });
       console.log('getChangeAmount: all inputs: ' + totalInputValue.amount + ' all outputs: ' + allOutputValues)
       return  (totalInputValue.amount - (allOutputValues + fee))
     }
