@@ -42,3 +42,5 @@ torrents
 properties.conf
 users.htpasswd
 *.dat
+typings/
+.vscode/
