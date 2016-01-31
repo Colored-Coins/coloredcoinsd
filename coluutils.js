@@ -39,7 +39,7 @@ module.exports = (function () {
 
     function safeParse(item) {
       try{
-        if(typeof item === 'string')
+        if((typeof item === 'string') || (item instanceof Buffer))
            return JSON.parse(item)
         else
            return item
@@ -600,8 +600,7 @@ data.tx.outs.forEach( function (txOut) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("upload:(200) ", data);
-                var torretdata = null
-                try{ torretdata = safeParse(data) } catch(e) {torretdata = data }
+                var torretdata = safeParse(data)
                 metadata.sha1 = torretdata.torrentHash
                 metadata.sha2 = torretdata.sha2
                 deferred.resolve(metadata);
