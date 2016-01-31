@@ -12,7 +12,7 @@ module.exports = (function () {
     var _ = require('lodash')
     var rsa = require('node-rsa')
 
-
+    
 
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
@@ -35,6 +35,18 @@ module.exports = (function () {
        client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
        client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
        client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
+    }
+
+    function safeParse(item) {
+      try{
+        if(typeof item === 'string')
+           return JSON.parse(item)
+        else
+           return item
+      }
+      catch(e) {
+        return item
+      }
     }
 
     coluutils.sendRawTransaction = function sendRawTransaction(txHex) {     
@@ -402,7 +414,7 @@ data.tx.outs.forEach( function (txOut) {
                   var getHashes = []
                   var multisignum = 0
                   values.forEach(function(txbufer, i) {
-                    var tx = JSON.parse(txbufer)
+                    var tx = safeParse(txbufer)
                     console.log('tx')
                     console.log(tx)
                     console.log(tx.vout[0].scriptPubKey.hex)
@@ -435,8 +447,8 @@ data.tx.outs.forEach( function (txOut) {
                   }
                   else {
                     Q.all(getHashes).done(function(metas){
-                        var first = JSON.parse(metas[0])
-                        var second = metas.length > 1 ? JSON.parse(metas[1]) : first
+                        var first = safeParse(metas[0])
+                        var second = metas.length > 1 ? safeParse(metas[1]) : first
                         data.metadataOfIssuence = first
                         data.sha2Issue = hashes[0].sha2.toString('hex')
                         if(metas.length > 1){
@@ -485,7 +497,7 @@ data.tx.outs.forEach( function (txOut) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("seed:(200) " + data);
-                //var torretdata = JSON.parse(data)
+                //var torretdata = safeParse(data)
                 deferred.resolve(data);
             }
             else if(data) {
@@ -528,8 +540,9 @@ data.tx.outs.forEach( function (txOut) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("download:(200) " + data);
-                var torretdata = JSON.parse(data)
-                deferred.resolve(data);
+                var torretdata = null
+                try{ torretdata = safeParse(data) } catch(e) {torretdata = data }
+                deferred.resolve(torretdata);
             }
             else if(data) {
                 console.log("download: rejecting with: " + response.statusCode + " " + data);
@@ -586,8 +599,9 @@ data.tx.outs.forEach( function (txOut) {
         client.methods.upload(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("upload:(200) " + data);
-                var torretdata = JSON.parse(data)
+                console.log("upload:(200) ", data);
+                var torretdata = null
+                try{ torretdata = safeParse(data) } catch(e) {torretdata = data }
                 metadata.sha1 = torretdata.torrentHash
                 metadata.sha2 = torretdata.sha2
                 deferred.resolve(metadata);
@@ -644,7 +658,7 @@ data.tx.outs.forEach( function (txOut) {
             if(Array.isArray(data)) {
                 var reply = []
                 data.forEach(function (utxolist) {
-                    var utxolistjson = JSON.parse(utxolist)
+                    var utxolistjson = safeParse(utxolist)
                     if(Array.isArray(utxolistjson))
                     {
                       utxolistjson.forEach(function (autxo) { reply.push(autxo) })
@@ -657,7 +671,7 @@ data.tx.outs.forEach( function (txOut) {
                  deferred.resolve(reply)
             }
             else {
-              var jsondata = JSON.parse(data)
+              var jsondata = safeParse(data)
               deferred.resolve(data)
             }
           })
@@ -667,7 +681,7 @@ data.tx.outs.forEach( function (txOut) {
           getUnspentsByAddress(Array.isArray(address) ? address : [address]).
           then(function (data) {
               var utxos = []
-              var jsondata = JSON.parse(data)
+              var jsondata = data
               jsondata.forEach(function (item) {
                 item.utxos.forEach(function (utxo) {
                   utxos.push(utxo)
@@ -813,7 +827,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("requestParseTx:(200) ");
-                deferred.resolve(JSON.parse(data));
+                deferred.resolve(safeParse(data));
             }
             else if(data) {
                 console.log("requestParseTx: rejecting with: " + response.statusCode + " " + data);
@@ -849,7 +863,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             console.log(data.toString());
             if (response.statusCode == 200) {
                 console.log("getAssetInfo:(200) ");
-                deferred.resolve(JSON.parse(data));
+                deferred.resolve(safeParse(data));
             }
             else if(data) {
                 console.log("getassetinfo: rejecting with: " + response.statusCode + " " + data);
@@ -1252,7 +1266,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     function addInputsForIssueTransaction(tx, metadata) {
         var deferred = Q.defer()
         var totalInputs = { amount: 0 }
-        //var metadata = JSON.parse(metadata)
+        //var metadata = safeParse(metadata)
         var assetId = ''
         
         console.log("======================")
@@ -1287,7 +1301,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         // TODO: need to check if we can decode it and its ours
         getUnspentsByAddress([metadata.issueAddress])
         .then(function (data) {
-            var jsonresponse = JSON.parse(data)
+            var jsonresponse = data
             var utxos = []
             jsonresponse.forEach(function (item) {
               item.utxos.forEach(function (utxo) {
@@ -1295,7 +1309,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
               })
             })
 
-           // JSON.parse(data).utxos
+           // safeParse(data).utxos
             console.log('got ' + utxos.length + ' unspents for ' + metadata.issueAddress + " from block explorer")
             //add to transaction enough inputs so we can cover the cost
             //send change if any back to us            
@@ -1511,7 +1525,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("getAssetStakeholders:(200) " + data);
-                deferred.resolve(JSON.parse(data));
+                deferred.resolve(safeParse(data));
             }
             else if(data) {
                 console.log("rejecting with: " + response.statusCode + " " + data);
