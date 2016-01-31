@@ -39,8 +39,9 @@ module.exports = (function () {
 
     function safeParse(item) {
       try{
-        if((typeof item === 'string') || (item instanceof Buffer))
+        if((typeof item === 'string') || (item instanceof Buffer)) {
            return JSON.parse(item)
+         }
         else
            return item
       }
@@ -415,8 +416,9 @@ data.tx.outs.forEach( function (txOut) {
                   var multisignum = 0
                   values.forEach(function(txbufer, i) {
                     var tx = safeParse(txbufer)
-                    console.log('tx')
-                    console.log(tx)
+                    console.log('tx', tx)
+                    //console.log('values', values)
+                    //console.log('txbufer', txbufer)
                     console.log(tx.vout[0].scriptPubKey.hex)
 
                      if(!i) {
@@ -753,7 +755,7 @@ data.tx.outs.forEach( function (txOut) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("getTransastion:(200)");
-                deferred.resolve([data]);
+                deferred.resolve(data);
             }
             else if(data) {
                 console.log("getTransastion: rejecting with: " + response.statusCode + " " + data);
