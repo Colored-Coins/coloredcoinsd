@@ -66,6 +66,5 @@ if (module_exists('./config-local')) {
   config.piwik.method_dim_id = process.env.PIWIK_METHOD_DIM_ID || config.piwik.method_dim_id
   config.piwik.version_dim_id = process.env.PIWIK_VERSION_DIM_ID || config.piwik.version_dim_id
   config.piwik.enabled = config.piwik.url && config.piwik.token && config.piwik.siteid
-  console.log('Piwik properties: ' + JSON.stringify(config.piwik))
   module.exports = config
 }

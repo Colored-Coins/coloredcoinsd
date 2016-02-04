@@ -43,26 +43,28 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'QA') {
   })()
 }
 
-if(!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
+if (!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
   console.error = (function () {
-  var orig = console.error
-  return function() {
-      consoleLogger.error.apply(consoleLogger, Array.prototype.slice.call(arguments));
-      if (process.env.LETOKEN)
-      {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('err')
-        orig(args)
-        log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.cloneDeep(args, true) : args);
+    var orig = console.error
+    return function () {
+        consoleLogger.error.apply(consoleLogger, Array.prototype.slice.call(arguments));
+        if (process.env.LETOKEN)
+        {
+          var args = Array.prototype.slice.call(arguments);
+          args.unshift('err')
+          orig(args)
+          log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.cloneDeep(args, true) : args);
+        }
       }
-    };
-  })();
+  })()
 }
 
-String.prototype.endsWith = function (suffix) {
-  return this.indexOf(suffix, this.length - suffix.length) !== -1
+// Add some string methods, remove it when we'll move to ECMA6 (Node.JS >4.x)
+if (!String.prototype.endsWith) {
+  String.prototype.endsWith = function (suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1
+  }
 }
-
 if (!String.prototype.startsWith) {
   String.prototype.startsWith = function (searchString, position) {
     position = position || 0
@@ -71,9 +73,9 @@ if (!String.prototype.startsWith) {
 }
 
 if (!process.env.LETOKEN) {
-  console.error("No Logentries token found in enviorment")
+  console.error('No Logentries token found in enviorment')
 } else {
-   console.log("Logentries logging active")
+  console.log('Logentries logging active')
 }
 
 var app = express();
@@ -102,16 +104,21 @@ app.use(function (req, res, next) {
   }
   next()
 })
-config.piwik.enabled && app.use(piwik(config.piwik))
+
+if (config.piwik.enabled) {
+  console.log('Piwik is ENABLED, its configuration is: ' + JSON.stringify(config.piwik, null, 2))
+  app.use(piwik(config.piwik))
+} else {
+  console.log('Piwik is DISABLED')
+}
 
 controllers.register(app)
 
 var docs_handler = express.static(__dirname + '/node_modules/swagger-node-express/swagger-ui');
 app.get(/^\/docs(\/.*)?$/, function (req, res, next) {
   if (req.url === '/docs') { // express static barfs on root url w/o trailing slash
-      req.url = "/" + req.url.substr('/docs'.length)
-  }
-  else {
+    req.url = '/' + req.url.substr('/docs'.length)
+  } else {
     req.url = req.url.substr('/docs'.length)
   }
   return docs_handler(req, res, next)
@@ -132,16 +139,12 @@ app.use('/metadata', express.static(__dirname + '/static/metadata', options))
 app.use('/doc', express.static(__dirname + '/doc'))
 app.use('/', express.static(__dirname + '/doc'))
 
-
-
 app.use(function (err, req, res, next) {
   if (err) {
     console.log('Global Error', err)
     res.send(400, 'invalid json')
   }
 })
-
-
 
 var port = process.env.PORT || 8080
 app.listen(port)
