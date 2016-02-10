@@ -106,7 +106,7 @@ app.use(function (req, res, next) {
 })
 
 if (config.piwik.enabled) {
-  console.log('Piwik is ENABLED, its configuration is: ' + JSON.stringify(config.piwik, null, 2))
+  console.log('Piwik is ENABLED, its configuration is: ' + JSON.stringify(config.piwik))
   app.use(piwik(config.piwik))
 } else {
   console.log('Piwik is DISABLED')

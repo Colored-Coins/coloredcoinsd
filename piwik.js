@@ -22,6 +22,7 @@ module.exports = function (options) {
   return function (req, res, next) {
     req.startTime = Date.now()
     onFinished(res, function (err, res) {
+      options.debug && console.log('Piwik: request metadata is ' + JSON.stringify(req.metadata))
       if (req.metadata) {
         var piwik = piwikTracker(options.siteid, options.url)
         var action_result = (!err && res.statusCode < 400) ? 'success' : 'failure'
@@ -39,7 +40,7 @@ module.exports = function (options) {
         options.result_dim_id && (piwikData['dimension' + options.result_dim_id] = action_result)
         options.user_version_id && (piwikData['dimension' + options.version_dim_id] = req.metadata.version)
         piwik.track(piwikData)
-        options.debug && console.log('Request data has been sent to Piwik: ', JSON.stringify(piwikData, null, 2))
+        options.debug && console.log('Piwik: Request data has been sent to analytics server: ', JSON.stringify(piwikData))
       }
     })
     next()
