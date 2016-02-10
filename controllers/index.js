@@ -29,7 +29,6 @@ module.exports.register = function (app) {
   console.log('register')
   var latestVersion
   versions.reverse().forEach(function (version, i) {
-    // var versionpath = express();
     console.log('loading: ' + version.b)
     var swagger = sw.createNew()
     var versionpath = express.Router()
@@ -54,10 +53,10 @@ module.exports.register = function (app) {
       var element = swagger.resources[key]
       var path = '/' + version.b + element.resourcePath
       metadata.push({'path': path, 'function_name': key, 'version': version.b})
-      // console.log('Metadata obj: ' + JSON.stringify(metadata[metadata.length - 1]))
+      console.log('Metadata obj: ' + JSON.stringify(metadata[metadata.length - 1]))
     })
   })
-  var baseroutemetadata = _.filter(metadata, function (o) { return o.version === latestVersion });
+  var baseroutemetadata = _.filter(metadata, function (o) { return o.version === latestVersion })
   baseroutemetadata = _.map(baseroutemetadata, function (o) {
     o.path = o.path.replace('/' + latestVersion, '')
     return o

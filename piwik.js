@@ -22,7 +22,7 @@ module.exports = function (options) {
   return function (req, res, next) {
     req.startTime = Date.now()
     onFinished(res, function (err, res) {
-      options.debug && console.log('Piwik: request metadata is ' + JSON.stringify(req.metadata))
+      options.debug && console.log('Piwik: request ' + req.originalUrl + ' metadata is ' + JSON.stringify(req.metadata))
       if (req.metadata) {
         var piwik = piwikTracker(options.siteid, options.url)
         var action_result = (!err && res.statusCode < 400) ? 'success' : 'failure'
