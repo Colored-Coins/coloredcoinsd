@@ -39,6 +39,7 @@ module.exports = function (options) {
         options.result_dim_id && (piwikData['dimension' + options.result_dim_id] = action_result)
         options.user_version_id && (piwikData['dimension' + options.version_dim_id] = req.metadata.version)
         piwik.track(piwikData)
+        options.debug && console.log('Request data has been sent to Piwik: ', JSON.stringify(piwikData, null, 2))
       }
     })
     next()

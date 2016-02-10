@@ -21,6 +21,7 @@ var config = {
     url: 'https://analytics.colu.co/piwik.php',
     token: '04ed96c9526091a248bc30f4dff36ed6',
     siteid: 12,
+    debug: true,
     result_dim_id: 1,
     method_dim_id: 2,
     version_dim_id: 3
@@ -65,6 +66,7 @@ if (module_exists('./config-local')) {
   config.piwik.result_dim_id = process.env.PIWIK_RESULT_DIM_ID || config.piwik.result_dim_id
   config.piwik.method_dim_id = process.env.PIWIK_METHOD_DIM_ID || config.piwik.method_dim_id
   config.piwik.version_dim_id = process.env.PIWIK_VERSION_DIM_ID || config.piwik.version_dim_id
+  config.piwik.debug = process.env.PIWIK_DEBUG || config.piwik.debug
   config.piwik.enabled = config.piwik.url && config.piwik.token && config.piwik.siteid
   module.exports = config
 }
