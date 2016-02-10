@@ -56,7 +56,7 @@ module.exports.register = function (app) {
       console.log('Metadata obj: ' + JSON.stringify(metadata[metadata.length - 1]))
     })
   })
-  var baseroutemetadata = _.filter(metadata, function (o) { return o.version === latestVersion })
+  var baseroutemetadata = _.cloneDeep(_.filter(metadata, function (o) { return o.version === latestVersion }))
   baseroutemetadata = _.map(baseroutemetadata, function (o) {
     o.path = o.path.replace('/' + latestVersion, '')
     return o
