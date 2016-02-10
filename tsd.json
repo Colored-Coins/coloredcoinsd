@@ -9,13 +9,13 @@
       "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "serve-static/serve-static.d.ts": {
-      "commit": "46719185c564694c5583c4b7ad94dbb786ecad46"
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "express/express.d.ts": {
-      "commit": "46719185c564694c5583c4b7ad94dbb786ecad46"
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "mime/mime.d.ts": {
-      "commit": "46719185c564694c5583c4b7ad94dbb786ecad46"
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "lodash/lodash.d.ts": {
       "commit": "46719185c564694c5583c4b7ad94dbb786ecad46"
@@ -27,6 +27,9 @@
       "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "piwik-tracker/piwik-tracker.d.ts": {
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
+    },
+    "morgan/morgan.d.ts": {
       "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     }
   }

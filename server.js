@@ -7,6 +7,7 @@ var config = require('./config')
 var bodyParser = require('body-parser')
 var cors = require('cors')
 var piwik = require('./piwik')
+var morgan = require('morgan')
 
 var fs = require('fs')
 var log4js = require('log4js')
@@ -47,15 +48,14 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
   console.error = (function () {
     var orig = console.error
     return function () {
-        consoleLogger.error.apply(consoleLogger, Array.prototype.slice.call(arguments));
-        if (process.env.LETOKEN)
-        {
-          var args = Array.prototype.slice.call(arguments);
-          args.unshift('err')
-          orig(args)
-          log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.cloneDeep(args, true) : args);
-        }
+      consoleLogger.error.apply(consoleLogger, Array.prototype.slice.call(arguments));
+      if (process.env.LETOKEN) {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift('err')
+        orig(args)
+        log.log.apply(log, (args.length==2 && typeof(args[1])=='object') ? _.cloneDeep(args, true) : args);
       }
+    }
   })()
 }
 
@@ -78,7 +78,9 @@ if (!process.env.LETOKEN) {
   console.log('Logentries logging active')
 }
 
-var app = express();
+var app = express()
+
+app.use(morgan('combined'))
 
 var whitelist = ['coloredcoins.org', 'colu.co'];
 var corsOptions = {

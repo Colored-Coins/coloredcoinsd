@@ -27,7 +27,7 @@ module.exports.get_metadata = function (req) {
 
 module.exports.register = function (app) {
   console.log('register')
-  var latestVersion;
+  var latestVersion
   versions.reverse().forEach(function (version, i) {
     // var versionpath = express();
     console.log('loading: ' + version.b)
@@ -63,6 +63,7 @@ module.exports.register = function (app) {
     return o
   })
   metadata = metadata.concat(baseroutemetadata)
+  console.log('Routes metadata: ' + JSON.stringify(metadata))
 }
 
 
