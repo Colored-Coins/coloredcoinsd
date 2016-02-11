@@ -195,7 +195,6 @@ module.exports = (function () {
             client.hmset("addresses", req.body.address, req.body.email, function(err, data){
                 console.log(data);
             });
-            trySendGoogleAnalyticsEvent(req, 'Get Address');
             res.json({adress: adder});
         }
         catch(e) {
@@ -209,7 +208,6 @@ module.exports = (function () {
         api.broadcastTx(req.body.txHex).
         then(function(txid){
             api.requestParseTx(txid);
-            trySendGoogleAnalyticsEvent(req, 'Broadcast Asset');
             res.status(200).send({txid: txid});
         }).
         catch(function(error) { 
@@ -232,7 +230,6 @@ module.exports = (function () {
             var response = {txHex: data.txHex, assetId: data.assetId, coloredOutputIndexes: data.coloredOutputIndexes }
             if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
             if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
-            trySendGoogleAnalyticsEvent(req, 'Issue Asset');
             res.status(200).send(response);
         }).
         catch(function(error) { 
@@ -324,7 +321,6 @@ module.exports = (function () {
             then(api.createSendAssetTansaction).
             then(function(data) {
                  api.seedMetadata(data.metadata.sha1);
-                 trySendGoogleAnalyticsEvent(req, 'Send Asset');
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
             })
             .catch(function(error) {
@@ -341,8 +337,7 @@ module.exports = (function () {
     function trygetAssetStakeholders(req, res) {
         try{
             api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations)
-            .then(function(data) {
-                 trySendGoogleAnalyticsEvent(req, 'Get Asset Stake Holders');              
+            .then(function(data) {             
                  res.json(data);
             })
             .catch(function(error){
@@ -467,17 +462,6 @@ module.exports = (function () {
 
     function returnIssuedAsset(transaction) {
         return transaction
-    }
-
-    function trySendGoogleAnalyticsEvent(req, action) {
-         if (req.visitor) {
-            var network = config.testnet === 'true' ? "testnet" : "mainnet"
-            var category = 'API_' + network
-            req.visitor.event(category, action).send()
-         }
-         else {
-            console.log('Wont send analytics event, no accountId')
-         }
     }
 
     return color;

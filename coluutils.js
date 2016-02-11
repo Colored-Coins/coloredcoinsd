@@ -1,26 +1,26 @@
 module.exports = (function () {
-    var config = require("./config");
-    var Client = require('node-rest-client').Client;
+    var config = require("./config")
+    var Client = require('node-rest-client').Client
     var Q = require("q");
-    var rpc = require("bitcoin");
-    var AWS = require("aws-sdk");
-    var crypto = require('crypto');
-    var bitcoinjs = require('bitcoinjs-lib');
-    var bn = require('bignumber.js');
-    var cc = require('cc-transaction');
-    var assetIdencoder = require('cc-assetid-encoder');
+    var rpc = require("bitcoin")
+    var AWS = require("aws-sdk")
+    var crypto = require('crypto')
+    var bitcoinjs = require('bitcoinjs-lib')
+    var bn = require('bignumber.js')
+    var cc = require('cc-transaction')
+    var assetIdencoder = require('cc-assetid-encoder')
     var _ = require('lodash')
     var rsa = require('node-rsa')
 
     
 
-    var creds = {};
-    creds.AWSAKI = process.env.AWSAKI;
-    creds.AWSSSK = process.env.AWSSSK; 
+    var creds = {}
+    creds.AWSAKI = process.env.AWSAKI
+    creds.AWSSSK = process.env.AWSSSK
 
-    var client = new Client();
+    var client = new Client()
 
-    var rpcclient = new rpc.Client(config.bitcoind);
+    var rpcclient = new rpc.Client(config.bitcoind)
 
     function coluutils() {
        //client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
@@ -48,23 +48,24 @@ module.exports = (function () {
         return item
       }
     }
+    var safeParse = coluutils.safeParse
 
     coluutils.sendRawTransaction = function sendRawTransaction(txHex) {     
-        return callservice('sendrawtransaction',txHex);       
+        return callservice('sendrawtransaction',txHex)       
     }
 
     coluutils.getBlockCount = function getBlockCount() {     
-        return callservice('getblockcount');       
+        return callservice('getblockcount')      
     }
 
     coluutils.broadcastTxBitcoind = function broadcastTxBitcoind(txHex) {
-      return callservice('sendrawtransaction', txHex); 
+      return callservice('sendrawtransaction', txHex)
     }
 
 
     coluutils.getTransactionListForAddress = function getTransactionListForAddress(address, no_confirmations) {
-      var deferred = Q.defer();
-      var confirmations = no_confirmations || 0;
+      var deferred = Q.defer()
+      var confirmations = no_confirmations || 0
       callservice('listunspent', confirmations)
       .then(function(unspents) {
         console.log('got unspents')
