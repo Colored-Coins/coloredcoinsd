@@ -37,15 +37,14 @@ module.exports = (function () {
        client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
     }
 
-    function safeParse(item) {
-      try{
-        if((typeof item === 'string') || (item instanceof Buffer)) {
-           return JSON.parse(item)
-         }
-        else
-           return item
-      }
-      catch(e) {
+    coluutils.safeParse = function safeParse (item) {
+      try {
+        if ((typeof item === 'string') || (item instanceof Buffer)) {
+          return JSON.parse(item)
+        } else {
+          return item
+        }
+      } catch (e) {
         return item
       }
     }
