@@ -1,41 +1,43 @@
 module.exports = (function () {
-  var config = require("./config")
-  var Client = require('node-rest-client').Client
-  var Q = require("q")
-  var rpc = require("bitcoin")
-  var AWS = require("aws-sdk")
-  var crypto = require('crypto')
-  var bitcoinjs = require('bitcoinjs-lib')
-  var bn = require('bignumber.js')
-  var cc = require('cc-transaction')
-  var assetIdencoder = require('cc-assetid-encoder')
-  var _ = require('lodash')
-  var rsa = require('node-rsa')
+    var config = require("./config");
+    var Client = require('node-rest-client').Client;
+    var Q = require("q");
+    var rpc = require("bitcoin");
+    var AWS = require("aws-sdk");
+    var crypto = require('crypto');
+    var bitcoinjs = require('bitcoinjs-lib');
+    var bn = require('bignumber.js');
+    var cc = require('cc-transaction');
+    var assetIdencoder = require('cc-assetid-encoder');
+    var _ = require('lodash')
+    var rsa = require('node-rsa')
 
-  var creds = {}
-  creds.AWSAKI = process.env.AWSAKI
-  creds.AWSSSK = process.env.AWSSSK 
+    
 
-  var client = new Client()
+    var creds = {};
+    creds.AWSAKI = process.env.AWSAKI;
+    creds.AWSSSK = process.env.AWSSSK; 
 
-  var rpcclient = new rpc.Client(config.bitcoind);
+    var client = new Client();
 
-  function coluutils() {
-      //client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
-      client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressesutxos", "POST")
-      client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
-      client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
-      client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
-      client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxos", "POST")
-      client.registerMethod("broadcasttx", config.blockexplorer.url + "/api/transmit", "POST")
-    // client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxo?txid=${txid}&index=${index}", "GET")
-      client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
-      client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
-      client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
-      client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
-  }
+    var rpcclient = new rpc.Client(config.bitcoind);
 
-    coluutils.safeParse = function safeParse(item) {
+    function coluutils() {
+       //client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
+       client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressesutxos", "POST")
+       client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
+       client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
+       client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
+       client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxos", "POST")
+       client.registerMethod("broadcasttx", config.blockexplorer.url + "/api/transmit", "POST")
+      // client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxo?txid=${txid}&index=${index}", "GET")
+       client.registerMethod("preparsetx", config.blockexplorer.url + "/api/parsetx?txid=${txid}", "POST")
+       client.registerMethod("upload", config.torrentServer.url + "/addMetadata?token=${token}", "POST")
+       client.registerMethod("seed", config.torrentServer.url + "/shareMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
+       client.registerMethod("download", config.torrentServer.url + "/getMetadata?token=${token}&torrentHash=${torrentHash}", "GET")
+    }
+
+    function safeParse(item) {
       try{
         if((typeof item === 'string') || (item instanceof Buffer)) {
            return JSON.parse(item)
@@ -850,74 +852,77 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
     function getAssetInfo(assetIs, utxo)
     {
-      var deferred = Q.defer();
-      var args = {
-                  path: { "assetId": assetIs, "utxo": utxo },
-                  headers:{"Content-Type": "application/json"} 
-              }
-      try {
+        var deferred = Q.defer();
+        var args = {
+                    path: { "assetId": assetIs, "utxo": utxo },
+                    headers:{"Content-Type": "application/json"} 
+                }
+                          try{
+
+      
         client.methods.getassetinfo(args, function (data, response) {
-        console.log(data)
-        if (response.statusCode == 200) {
-            console.log('getAssetInfo:(200)')
-            deferred.resolve(safeParse(data))
-        }
-        else if(data) {
-            console.log("getassetinfo: rejecting with: " + response.statusCode + " " + data)
-            deferred.reject(new Error(response.statusCode + " " + data))
-        }
-        else {
-            console.log("getassetinfo: rejecting with: " + response.statusCode)
-            deferred.reject(new Error("Status code was " + response.statusCode))
-        }
-      }).on('error', function (err) {
-              console.log('something went wrong on the request', err.request.options)
-              deferred.reject(new Error("Status code was " + err.request.options))
-        })
-      } catch(e) { 
-        console.log(e)
-        deferred.reject(new Error("error parsing response form blockexplorer"))
+            console.log(data.toString());
+            if (response.statusCode == 200) {
+                console.log("getAssetInfo:(200) ");
+                deferred.resolve(safeParse(data));
+            }
+            else if(data) {
+                console.log("getassetinfo: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
+            }
+            else {
+                console.log("getassetinfo: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
+            }
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
       }
-      return deferred.promise;
+      catch(e) { console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); }
+
+        return deferred.promise;
     }
 
     function getUnspentsByAddress(address)
     {
         var deferred = Q.defer();
         var args = {
-          //   path: { "address": address },
-          data: {"addresses" : address },
-          headers:{"Content-Type": "application/json"} 
-        }
-        try {
-          client.methods.getaddressutxos(args, function (data, response) {
-            console.log(data.toString())
+                 //   path: { "address": address },
+                    data: {"addresses" : address },
+                    headers:{"Content-Type": "application/json"} 
+                }
+                          try{
+
+      
+        client.methods.getaddressutxos(args, function (data, response) {
+            console.log(data.toString());
             if (response.statusCode == 200) {
-              console.log('getUnspentsByAddress:(200)')
-              deferred.resolve(data)
+                console.log("getUnspentsByAddress:(200) ");
+                deferred.resolve(data);
             }
             else if(data) {
-              console.log("getUnspentsByAddress: rejecting with: " + response.statusCode + " " + data);
-              deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("getUnspentsByAddress: rejecting with: " + response.statusCode + " " + data);
+                deferred.reject(new Error(response.statusCode + " " + data));
             }
             else {
-              console.log("getUnspentsByAddress: rejecting with: " + response.statusCode);
-              deferred.reject(new Error("Status code was " + response.statusCode));
+                console.log("getUnspentsByAddress: rejecting with: " + response.statusCode);
+                deferred.reject(new Error("Status code was " + response.statusCode));
             }
-          }).on('error', function (err) {
-            console.log('something went wrong on the request', err.request.options);
-            deferred.reject(new Error("Status code was " + err.request.options));
-          })
-      } catch(e) { 
-        console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); 
+        }).on('error', function (err) {
+                console.log('something went wrong on the request', err.request.options);
+                deferred.reject(new Error("Status code was " + err.request.options));
+            });
       }
-      return deferred.promise;
+      catch(e) { console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); }
+
+        return deferred.promise;
     }
 
     //TODO: break this into a generic fee mechanisem where fee and and total inputs amount are diffrent
     // inputs amount can be taked from the sent asset as well, fee variable is missleading
     function comupteCost(withfee, metadata ){
-       var fee = withfee ? config.minfee : 0;
+       fee = withfee ? config.minfee : 0;
 
         if(metadata.to && metadata.to.length)
         {

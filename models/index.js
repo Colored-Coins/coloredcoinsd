@@ -1,16 +1,18 @@
 module.exports = function (sw, version) {
-  var models = []
-  console.log('models require now')
+    var models = [];
+    var path = require('path');
 
-  require('fs').readdirSync(__dirname + '/' + version + '/').forEach(function (file) {
-    if (file.match(/.+\.js/g) !== null && file !== 'index.js') {
-      var name = file.replace('.js', '')
-      if (!sw.hasModel(name)) {
-        console.log('adding model: ' + name)
-        exports[name] = require('./' + version + '/' + file)
-        sw.addModels(exports[name])
-        models.push(exports[name])
-      }
-    }
-  })
+    console.log('models require now')
+
+    require('fs').readdirSync(__dirname + '/' + version + '/').forEach(function (file) {
+        if (file.match(/.+\.js/g) !== null && file !== 'index.js') {
+            var name = file.replace('.js', '');
+            if(!sw.hasModel(name)) {
+                console.log("adding model: " + name)
+                exports[name] = require('./' + version + '/' + file );
+                sw.addModels(exports[name])      
+                models.push(exports[name])
+            }
+        }
+    });
 }
