@@ -16,7 +16,7 @@
     "body-parser": ">=1.9.0",
     "bs58check": "^1.0.3",
     "cc-assetid-encoder": "^0.4.0",
-    "cc-transaction": "^0.4.0",
+    "cc-transaction": "^1.0.0",
     "cors": "^2.7.1",
     "express": "4.10.4",
     "le_node": "^0.2.1",

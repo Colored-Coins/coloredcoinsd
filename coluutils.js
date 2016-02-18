@@ -293,7 +293,7 @@ data.tx.outs.forEach( function (txOut) {
     function encodeColorScheme(args) {
       var addMultisig = false;
       var metadata = args.metadata
-      var encoder = cc.newTransaction(0x4343, 0x01)
+      var encoder = cc.newTransaction(0x4343, 0x02)
       var reedemScripts = []
       var coloredOutputIndexes = []
       encoder.setLockStatus(!metadata.reissueable)
