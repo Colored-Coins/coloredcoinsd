@@ -102,15 +102,18 @@ module.exports = (function () {
                 "summary": "",
                 "method": "GET",
                 "parameters": [
-                    sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
-                    sw.pathParam("utxo", "provide data for secific utxo", "string", true)
+                    sw.pathParam("assetId", "ID of Asset we want to get info for", "string", true),
+                    sw.pathParam("utxo", "provide data for secific utxo", "string", false),
+                    sw.queryParam("verbosity", "integer to determine how detailed is the metadata, varying from 0 to 2 where 0 is the most basic", "string", false)
                 ],
                 "type": "assetMetadataResponse",
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "getAssetMetadata"
             },
             'action': function (req, res) {
-                api.getAssetMetadata(req.params.assetId, req.params.utxo).
+                var verbosity = parseInt(req.query.verbosity)
+                verbosity = ([0,1,2].indexOf(verbosity) > -1)? verbosity : 1
+                api.getAssetMetadata(req.params.assetId, req.params.utxo, verbosity).
                 then(
                     function(data) { res.status(200).send(data) }, 
                     function(err) { res.status(400).send({error: err.message}) } 

@@ -26,7 +26,7 @@ module.exports = (function () {
        //client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
        client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressesutxos", "POST")
        client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
-       client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}", "GET")
+       client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}&verbosity=${verbosity}", "GET")
        client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
        client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxos", "POST")
        client.registerMethod("broadcasttx", config.blockexplorer.url + "/api/transmit", "POST")
@@ -385,11 +385,11 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo) {
+    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity) {
       var self = this
        var deferred = Q.defer()
 
-        getAssetInfo(assetId, utxo).
+        getAssetInfo(assetId, utxo, verbosity).
         then(function(data){
           if(!data.issuanceTxid) {
             if(utxo) {
@@ -850,11 +850,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
 
 
-    function getAssetInfo(assetIs, utxo)
+    function getAssetInfo(assetId, utxo, verbosity)
     {
         var deferred = Q.defer();
         var args = {
-                    path: { "assetId": assetIs, "utxo": utxo },
+                    path: { "assetId": assetId, "utxo": utxo, "verbosity": verbosity },
                     headers:{"Content-Type": "application/json"} 
                 }
                           try{
