@@ -1187,7 +1187,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 if(a.assetId == key) {console.log('amount += ' + a.amount); foundAmount += a.amount;} 
             })
             console.log('score is ' + utxo.score)
-            return utxo.score;
+            return -utxo.score;
         })
       }
       console.log('sorted utxos by score and assets')
