@@ -21,11 +21,11 @@ exports.models = {
             },
             "pubKeyReturnMultisigDust": {
                 "type": "string",
-                "description": "encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
+                "description": "Encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
             },
             "financeOutput": {
                 "type": "vout",
-                "description": "use this vout as the first input, for the transaction"
+                "description": "Use this vout as the first input, for the transaction"
             },
             "financeOutputTxid": {
                 "type": "string",
@@ -33,8 +33,12 @@ exports.models = {
             },
             "reissueable":{
                  "type": "boolean",
-                "description": "can the asset be reissued, in simple cases there is no need for mint tokens, the same key can resissue the asset"
+                "description": "Can the asset be reissued, in simple cases there is no need for mint tokens, the same key can resissue the asset"
             },
+            "aggregationPolicy": {
+              "type": "string",
+              "description": "Can assets be aggregated, current supported values: \'aggregatable\' - always allow aggregation for assets of the created asset ID, and \'dispersed\' - never allow."
+            }
             "flags" : {
                 "type": "flags",
                 "description": "Flags for this transaction"
@@ -44,7 +48,7 @@ exports.models = {
                 "format": "int32",
                 "minimum": "0",
                 "maximum": "8",
-                "description": "settings that need to be met in order for this asset to be considerd valid"
+                "description": "Settings that need to be met in order for this asset to be considerd valid"
             },
             "transfer": {
                 "type": "array",
@@ -55,11 +59,11 @@ exports.models = {
             },
             "rules": {
                 "type": "rules",
-                "description": "section used only if the transaction is a reissueance trasaction"
+                "description": "Section used only if the transaction is a reissueance trasaction"
             },
              "metadata": {
                 "type": "metadata",
-                "description": "section used only if the transaction is a reissueance trasaction"
+                "description": "Section used only if the transaction is a reissueance trasaction"
             }
         }
     }

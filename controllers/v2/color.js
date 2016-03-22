@@ -27,7 +27,7 @@ module.exports = (function () {
             'spec': {
                 "description": "",
                 "path": "/issue",
-                "notes": "Returns a issued asset",
+                "notes": "Returns an issued asset",
                 "summary": "",
                 "method": "POST",
                 "parameters": [
@@ -50,7 +50,7 @@ module.exports = (function () {
             'spec': {
                 "description": "",
                 "path": "/sendasset",
-                "notes": "Returns a issued asset",
+                "notes": "Returns a sent asset",
                 "summary": "",
                 "method": "POST",
                 "parameters": [

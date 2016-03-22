@@ -232,6 +232,7 @@ var get_opreturn_data = function (hex) {
     coluutils.createIssueTransaction = function createIssueTransaction(metadata) {
         var deferred = Q.defer();
         metadata.divisibility = metadata.divisibility || 0
+        metadata.aggregationPolicy = metadata.aggregationPolicy || 'aggregatable'
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
