@@ -11,12 +11,15 @@ module.exports = (function () {
     var assetIdencoder = require('cc-assetid-encoder')
     var _ = require('lodash')
     var rsa = require('node-rsa')
+    var findBestMatchByNeededAssets = require('./modules/findBestMatchByNeededAssets')
 
     
 
     var creds = {}
     creds.AWSAKI = process.env.AWSAKI
     creds.AWSSSK = process.env.AWSSSK
+
+    var CC_TX_VERSION = 0x02
 
     var client = new Client()
 
@@ -294,12 +297,14 @@ data.tx.outs.forEach( function (txOut) {
     function encodeColorScheme(args) {
       var addMultisig = false;
       var metadata = args.metadata
-      var encoder = cc.newTransaction(0x4343, 0x02)
+      var encoder = cc.newTransaction(0x4343, CC_TX_VERSION)
       var reedemScripts = []
       var coloredOutputIndexes = []
       encoder.setLockStatus(!metadata.reissueable)
+      encoder.setAmount(metadata.amount, metadata.divisibility)
       console.log("amount and div " + metadata.amount+" "+ metadata.divisibility)
-      encoder.setAmount(metadata.amount, metadata.divisibility);
+      encoder.setAggregationPolicy(metadata.aggregationPolicy)
+      console.log('aggregationPolicy = ' + metadata.aggregationPolicy)
       if(metadata.metadata || metadata.rules) {
          if(config.writemultisig) {
             if(!metadata.sha1 || !metadata.sha2) {
@@ -904,7 +909,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             }
             else if(data) {
                 console.log("getUnspentsByAddress: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                deferred.reject(new Error(JSON.stringify(data, null, 2)));
             }
             else {
                 console.log("getUnspentsByAddress: rejecting with: " + response.statusCode);
@@ -982,25 +987,22 @@ coluutils.requestParseTx = function requestParseTx(txid)
              {
                 console.log('working on asset: ' + asset)
                 console.log(utxos)
-                var assetUtxo = utxos.filter(function (element, index, array) {
-                  console.log('checking element')
-                  console.log(element)
-                  if(!element.assets)    { return false }
-                  
-                   return element.assets.some(function(a){
-                      console.log('checking ' + a.assetId + ' and '+ asset)
-                      return (a.assetId == asset)
-                   })
+                var assetUtxos = utxos.filter(function (element, index, array) {
+                  if (!element.assets) { return false }                 
+                  return element.assets.some(function(a){
+                    console.log('checking ' + a.assetId + ' and '+ asset)
+                    return (a.assetId == asset)
+                  })
                 })
-                if(assetUtxo && assetUtxo.length > 0) {
+                if(assetUtxos && assetUtxos.length > 0) {
                   console.log("have utxo list")
                   var key = asset;
-                  assetUtxo.forEach(function (utxo){ if(utxo.used) {
+                  assetUtxos.forEach(function (utxo){ if(utxo.used) {
                       console.log('utxo', utxo)
                       deferred.reject(new Error('utxo: ' + utxo.txid + ":" + utxo.index + ' is already spent' ))
                       return deferred.promise 
                   } })
-                   if(!findBestMatchByNeededAssets (assetUtxo, assetList, key, tx, totalInputs, metadata)) {
+                   if(!findBestMatchByNeededAssets (assetUtxos, assetList, key, tx, totalInputs, metadata)) {
                       deferred.reject(new Error('Not Enough of asset: ' + key ))
                       return;
                    }
@@ -1012,7 +1014,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
              }
              console.log('reached encoder')
-             var encoder = cc.newTransaction(0x4343, 0x01)
+             var encoder = cc.newTransaction(0x4343, CC_TX_VERSION)
             if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
               var reply = new Error('not enough satoshi in account or fianance for fees')
               reply.json = {error: 'not enough satoshi in account or fianance to cover sending', missing: satoshiCost - totalInputs.amount, fee: metadata.fee, total: satoshiCost}            
@@ -1021,22 +1023,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
               return  deferred.promise
             }
 
-             /* var curentValueInSatoshi = _.sum(tx.ins, function(input) { return input.amount; });
-              console.log('current transaction value: ' + curentValueInSatoshi + ' projected cost: ' + satoshiCost)
-              console.log(tx.ins)
-              if(satoshiCost > curentValueInSatoshi) {
-                  if(!insertSatoshiToTransaction(utxos, tx, (satoshiCost - curentValueInSatoshi), totalInputs, metadata)) {
-                     console.log('not enough satoshi in account for fees')
-                    deferred.reject(new Error('not enough satoshi in account for fees' ))
-                    return;
-                  }
-              }*/
-
              for( asset in assetList)
              {
 
                 currentAsset = assetList[asset];
-                console.log('encodeing asset ' + asset)
+                console.log('encoding asset ' + asset)
                 if(!currentAsset.done) {
                   console.log('current asset state is bad ' + asset)
                   deferred.reject(new Error('Not Enough aseet of ' + asset ))
@@ -1044,10 +1035,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 }
                 console.log(currentAsset.addresses)
                 var uniAssets = _.uniqBy(currentAsset.addresses, function(item) { return item.address } )
-                console.log(uniAssets)
+                console.log('uniAssets = ', uniAssets)
                 uniAssets.forEach(function(address) {
                   console.log('adding output ' + (tx.outs ? tx.outs.length : 0) + " for address: " + address.address + " with satoshi value " + config.mindustvalue + ' asset value: ' + address.amount)
                   var addressAmountLeft = address.amount
+                  console.log('currentAsset = ', currentAsset, ', currentAsset.inputs.length = ', currentAsset.inputs.length)
                   currentAsset.inputs.some(function (input) {
                     if(!input.amount) { return false }
                     if(addressAmountLeft - input.amount > 0 ) {
@@ -1171,98 +1163,6 @@ coluutils.requestParseTx = function requestParseTx(txid)
           console.log('No need for additional finance')
 
         return true
-    }
-
-    function findBestMatchByNeededAssets(utxos, assetList, key, tx, inputvalues, metadata) {
-      var foundAmount = 0
-      var sortedutxo = utxos;
-      for( asset in assetList) {
-        console.log('findBestMatchByNeededAssets checking asset: ' + asset +' key is ' + key )
-        sortedutxo =_.sortBy(sortedutxo, function(utxo) {
-          console.log(utxo.assets)
-            utxo.score = 0;
-            utxo.assets.forEach(function(a){
-                console.log('about to check asset ' + asset +' to asset ' +a.assetId + ' with amount: ' + a.amount)
-                if(((a.assetId == asset) && !assetList[asset].done)) { console.log('score += 1'); utxo.score += 1; }
-                if(((a.assetId == asset) && !assetList[asset].done && a.amount >= assetList[key].amount)) { console.log('score' + utxo.score); utxo.score += 100000; }
-                if(a.assetId == key) {console.log('amount += ' + a.amount); foundAmount += a.amount;} 
-            })
-            console.log('score is ' + utxo.score)
-            return -utxo.score;
-        })
-      }
-      console.log('sorted utxos by score and assets')
-      // do we have enough for the transfer
-      if(foundAmount < assetList[key].amount) {
-         console.log('not enough amount')
-        return false;
-      }
-      
-      console.log('adding inputs by assets and amounts')    
-      sortedutxo.some(function(utxo) {
-        console.log('interating over ')
-        console.log(utxo)
-          utxo.assets.forEach(function(asset) {
-            try{
-              console.log('maybe adding input for ' + asset.assetId )
-              if(assetList[asset.assetId] && !assetList[asset.assetId].done) {
-                 console.log('probably adding input for ' + asset.assetId )
-                 console.log('transfer request: ' + assetList[asset.assetId].amount + ' availble in utxo: ' + asset.amount)
-                 console.log('adding input')
-                 var inputIndex = tx.ins.length
-                 if(!tx.ins.some(function (txutxo, i) {
-                    if(txutxo.index == utxo.index && bitcoinjs.bufferutils.reverse(txutxo.hash).toString('hex') == utxo.txid) {
-                      console.log('more assets in same utxo')
-                      inputIndex = i
-                      return true
-                    }
-                    return false
-                 })) {
-                   tx.addInput(utxo.txid, utxo.index);
-                   console.log('setting input value ' + utxo.value + ' actual: ' + Math.round(utxo.value))
-                   inputvalues.amount += Math.round(utxo.value)
-                   console.log('setting input in asset list')
-                   //assetList[asset.assetId].input = tx.ins.length -1;
-                   if(metadata.flags && metadata.flags.injectPreviousOutput) {
-                      tx.ins[tx.ins.length -1].script = 
-                      bitcoinjs.Script.fromHex (utxo.scriptPubKey.hex)
-                   }
-                 }
-                 else {
-                   //asset split inside same utxo dont count satoshi value just log it
-
-                 }
-
-                
-                 
-                if(assetList[asset.assetId].amount <= asset.amount) {
-                    var totalamount = asset.amount
-                    assetList[asset.assetId].inputs.forEach(function (input) { totalamount += input.amount })
-                    assetList[asset.assetId].inputs.push({ index: inputIndex, amount: assetList[asset.assetId].amount})          
-                    console.log('setting change')
-                    assetList[asset.assetId].change = totalamount - assetList[asset.assetId].amount
-                    console.log('setting done')
-                    assetList[asset.assetId].done = true
-                }
-                else {
-                  assetList[asset.assetId].inputs.push({ index: inputIndex, amount: asset.amount})
-                  assetList[asset.assetId].amount -= asset.amount;
-                } 
-              }
-              else
-                console.log('not adding input for ' + asset.assetId )
-            }
-            catch(e) { console.log(e) }
-            })
-
-          console.log('returning ' + assetList[key].done )
-          return assetList[key].done;
-      })
-      console.log('done with findBestMatchByNeededAssets')
-      return true;
-      /*sortedutxo.forEach(function(utxo){
-
-      })*/
     }
 
     function addInputsForIssueTransaction(tx, metadata) {

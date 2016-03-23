@@ -274,6 +274,13 @@ module.exports = (function () {
 
             else { deferred.resolve(input) }
         }
+        else if (input && input.aggregationPolicy) {
+            if (['aggregatable', 'dispersed'].indexOf(input.aggregationPolicy) < 0) {
+                deferred.reject(new Error('parameter aggregationPolicy must be \'aggregatable\' or \'dispersed\''))
+            } else {
+                deferred.resolve(input)
+            }
+        }
         else
             deferred.resolve(input)
         return deferred.promise

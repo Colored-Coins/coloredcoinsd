@@ -37,8 +37,8 @@ exports.models = {
             },
             "aggregationPolicy": {
               "type": "string",
-              "description": "Can assets be aggregated, current supported values: \'aggregatable\' - always allow aggregation for assets of the created asset ID, and \'dispersed\' - never allow."
-            }
+              "description": "Can assets be aggregated, current supported values: \'aggregatable\' - always allow aggregation for assets of the created asset ID, and \'dispersed\' - never allow"
+            },
             "flags" : {
                 "type": "flags",
                 "description": "Flags for this transaction"
