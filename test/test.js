@@ -159,6 +159,52 @@ describe('Test UTXO selection algorithm', function () {
     done()
   })
 
+  it('should return minimal number of utxos with amount lower than target, aggregate few instances of an aggregatable asset in same utxo', function (done) {
+  	var tx = new bitcoinjs.Transaction()
+  	var inputvalues = {amount: 0}
+  	var assetList = {
+			A: {
+				amount: 3960,
+				inputs: []
+			}
+		}
+		var utxos = []
+		for (var i = 0 ; i < 1000 ; i++) {
+			utxos.push({
+				index: i,
+				txid: '0000000000000000000000000000000000000000000000000000000000000000',
+				value: 4000,
+				assets: [
+					{
+						assetId: 'A',
+		 				amount: i,
+		 				issueTxid: '0000000000000000000000000000000000000000000000000000000000000001',
+		 				divisibility: 2,
+		 				lockStatus: false,
+		 				aggregationPolicy: 'aggregatable'
+					},
+					{
+						assetId: 'A',
+		 				amount: i,
+		 				issueTxid: '0000000000000000000000000000000000000000000000000000000000000001',
+		 				divisibility: 2,
+		 				lockStatus: false,
+		 				aggregationPolicy: 'aggregatable'
+					}
+				]
+			}) 
+		}
+    findBestMatchByNeededAssets(utxos, assetList, 'A', tx, inputvalues, metadata)
+    assert.equal(tx.ins.length, 2)
+    assert.equal(assetList['A'].inputs.length, 1)		// = number of payments
+    assert.equal(assetList['A'].inputs[0].amount, 3960)
+    assert.equal(findInput(utxos, tx, 0).assets[0].amount, 999)
+    assert.equal(findInput(utxos, tx, 0).assets[0].amount, 999)
+    assert.equal(findInput(utxos, tx, 1).assets[1].amount, 998)
+    assert.equal(findInput(utxos, tx, 1).assets[1].amount, 998)
+    done()
+  })
+
 	it('should return minimal number of utxos with amount lower than target, aggregate payments of aggregatable assets and split payments when different asset IDs', function (done) {
 		var tx = new bitcoinjs.Transaction()
 		var inputvalues = {amount: 0}
