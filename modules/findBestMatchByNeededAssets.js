@@ -24,7 +24,7 @@ var findBestMatchByNeededAssets = function (utxos, assetList, key, tx, inputvalu
     if (!found) selectedUtxos.length = 0
   }
 
-  console.log('selectedUtxos = ',  _.map(selectedUtxos, function (utxo) { return { utxo: (utxo.txid + ':' + utxo.txid), amount: getUtxoAssetAmount(utxo, key) } }))
+  console.log('selectedUtxos = ',  _.map(selectedUtxos, function (utxo) { return { utxo: (utxo.txid + ':' + utxo.index), amount: getUtxoAssetAmount(utxo, key) } }))
 
   if (!selectedUtxos.length) {
     console.log('not enough amount')
