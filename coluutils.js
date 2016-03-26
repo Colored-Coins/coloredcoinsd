@@ -1189,7 +1189,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
           assetId = encodeAssetIdInfo(metadata.reissueable, 
                 metadata.financeOutputTxid,
                 metadata.financeOutput.n,
-                metadata.financeOutput.scriptPubKey.asm,
+                metadata.financeOutput.scriptPubKey.hex,
                 metadata.divisibility,
                 metadata.aggregationPolicy)
           
@@ -1228,7 +1228,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                      assetId = encodeAssetIdInfo(metadata.reissueable, 
                                     utxo.txid,
                                     utxo.index,
-                                    utxo.scriptPubKey.asm,
+                                    utxo.scriptPubKey.hex,
                                     metadata.divisibility,
                                     metadata.aggregationPolicy)
                   }
@@ -1285,7 +1285,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     }
 
 
-    function encodeAssetIdInfo(reissueable, txid, nvout, asm, divisibility, aggregationPolicy) {
+    function encodeAssetIdInfo(reissueable, txid, nvout, hex, divisibility, aggregationPolicy) {
        var opts = {
               'ccdata': [{
                 'type': 'issuance',
@@ -1297,7 +1297,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 'txid': txid,
                 'vout': nvout,
                 'previousOutput': {
-                  'asm': asm 
+                  'hex': hex 
                 } 
               }]
             }
