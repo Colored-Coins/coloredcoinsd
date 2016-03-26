@@ -1190,8 +1190,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 metadata.financeOutputTxid,
                 metadata.financeOutput.n,
                 metadata.financeOutput.scriptPubKey.asm,
-                metadata.financeOutput.scriptPubKey.addresses[0],
-                metadata.divisibility )
+                metadata.divisibility,
+                metadata.aggregationPolicy)
           
           deferred.resolve({tx: tx, metadata: metadata, change: current - cost, assetId: assetId, totalInputs: { amount: current }})
           return deferred.promise; 
@@ -1229,8 +1229,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                                     utxo.txid,
                                     utxo.index,
                                     utxo.scriptPubKey.asm,
-                                    utxo.scriptPubKey.addresses[0],
-                                    metadata.divisibility)
+                                    metadata.divisibility,
+                                    metadata.aggregationPolicy)
                   }
                   console.log('math: ' + current.toNumber() + " " + utxo.value)
                   current = current.add(utxo.value)
@@ -1285,27 +1285,30 @@ coluutils.requestParseTx = function requestParseTx(txid)
     }
 
 
-    function encodeAssetIdInfo(reissueable, txid, nvout, asm, address, divisibility){
+    function encodeAssetIdInfo(reissueable, txid, nvout, asm, divisibility, aggregationPolicy) {
        var opts = {
-              'cc_data': [{
+              'ccdata': [{
                 'type': 'issuance',
                 'lockStatus': !reissueable,
-                'divisibility': divisibility
+                'divisibility': divisibility,
+                'aggregationPolicy': aggregationPolicy
               }],
               'vin': [{
                 'txid': txid,
-                'vout': nvout
+                'vout': nvout,
+                'previousOutput': {
+                  'asm': asm 
+                } 
               }]
             }
 
 
 
         if(!reissueable) {
-           console.log("++++++sending pedo locked : " + txid)
+           console.log('sending assetIdEncoder locked, first input = ' + txid + ':' + nvout)
         }
         else {
-            console.log("++++++sending pedo address : " + address)
-            opts.vin[0].address = address
+            console.log('sending assetIdEncoder unlocked, first input previousOutput = ', opts.vin[0].previousOutput)
           }
 
           console.log('encoding asset is locked: ' + !reissueable)
