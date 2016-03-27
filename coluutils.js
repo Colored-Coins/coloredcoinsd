@@ -685,7 +685,7 @@ data.tx.outs.forEach( function (txOut) {
         }
         else {
           console.log('using utxo for address: ' + address)
-          getUnspentsByAddress(Array.isArray(address) ? _.uniq(address) : [address]).
+          getUnspentsByAddress(Array.isArray(address) ? address : [address]).
           then(function (data) {
               var utxos = []
               var jsondata = data
