@@ -884,12 +884,12 @@ coluutils.requestParseTx = function requestParseTx(txid)
         return deferred.promise;
     }
 
-    function getUnspentsByAddress(address)
+    function getUnspentsByAddress(addresses)
     {
         var deferred = Q.defer();
+        addresses = _.uniq(addresses)
         var args = {
-                 //   path: { "address": address },
-                    data: {"addresses" : address },
+                    data: {"addresses" : addresses },
                     headers:{"Content-Type": "application/json"} 
                 }
                           try{
