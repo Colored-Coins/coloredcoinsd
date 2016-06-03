@@ -138,7 +138,7 @@ module.exports = (function () {
 
                console.log('found OP_RETURN')
 
-               var hex = get_opreturn_data(vout.scriptPubKey.hex) // remove op_return (0x6a) and data length?
+               var hex = get_opreturn_data(vout.scriptPubKey.asm)
                 console.log(hex)
                if (check_version(hex)) {
                   console.log('hex: ', hex)
@@ -163,8 +163,8 @@ var check_version = function (hex) {
    return false
   }
 
-var get_opreturn_data = function (hex) {
-    return hex.substring(4)
+var get_opreturn_data = function (asm) {
+  return asm.substring('OP_RETURN '.length)
 }
 
 
