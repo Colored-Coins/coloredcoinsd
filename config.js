@@ -1,4 +1,5 @@
 var config = {
+  env: 'development',
   testnet: true,
   google_api_key: 'AIzaSyBJfxobLSO_IM9tI1ATWpOelVInNuH1kBM',
   machineurl: 'http://api.coloredcoins.org',
@@ -46,6 +47,7 @@ function module_exists (name) {
 if (module_exists('./config-local')) {
   module.exports = require('./config-local')
 } else {
+  config.env = process.env.NODE_ENV || config.env
   config.blockexplorer.url = process.env.BLOCKEXPLORER_URL || config.blockexplorer.url
   config.machineurl = process.env.MACHINEURL || config.machineurl
   config.bitcoind.host = process.env.BITCOIND_HOST || config.bitcoind.host
@@ -68,5 +70,6 @@ if (module_exists('./config-local')) {
   config.piwik.version_dim_id = process.env.PIWIK_VERSION_DIM_ID || config.piwik.version_dim_id
   config.piwik.debug = process.env.PIWIK_DEBUG || false
   config.piwik.enabled = config.piwik.url && config.piwik.token && config.piwik.siteid
+  config.secret = process.env.SECRET
   module.exports = config
 }

@@ -7,7 +7,7 @@ module.exports = (function () {
     var Q = require("q");
     var AWS = require("aws-sdk");
     var api = require('../../coluutils.js');
-
+    var errors = require('cc-errors')
 
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
@@ -40,9 +40,9 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "sendAsset"
             },
-            'action': function sendAsset(req, res) {
+            'action': function sendAsset(req, res, next) {
                 console.log("send asset action v3----------------------");
-                trySendAsset(req, res);
+                trySendAsset(req, res, next);
             }
         };
 
@@ -70,7 +70,7 @@ module.exports = (function () {
             }
         };
 
-        swagger.addPost(swapAsset);
+        // swagger.addPost(swapAsset);
 
 
 
@@ -102,19 +102,19 @@ module.exports = (function () {
                     return true
                 }
                 return false
-            })) { deferred.reject(new Error("can't use both an address and pubKeys, please choose one")) }
+            })) { deferred.reject(new errors.ValidationError({explanation: "Can't use both an address and pubKeys, please choose one"})) }
             else if(transferArr.some(function(transfer) {
                 if(transfer.pubKeys && !transfer.m) {
                     return true
                 }
                 return false
-            })) { deferred.reject(new Error("missing parameter m, number for signatures required for multisig reedem")) }
+            })) { deferred.reject(new errors.ValidationError({explanation: "Missing parameter m, number for signatures required for multisig reedem"})) }
             else if(transferArr.some(function(transfer) {
                 if(!transfer.pubKeys && !transfer.address) {
                     return true
                 }
                 return false
-            })) { deferred.reject(new Error("missing parameter address or pubKeys in transfer object")) }
+            })) { deferred.reject(new errors.ValidationError({explanation: "Missing parameter address or pubKeys in transfer object"})) }
 
             else { deferred.resolve(input) }
         }
@@ -148,14 +148,14 @@ module.exports = (function () {
             deferred.resolve(input);
         }
         else {
-            deferred.reject(new Error("input is invalid missing: " + missing));
+            deferred.reject(new errors.ValidationError({explanation: ('Input is invalid. Missing: ' + missing)}));
         }
            
         return deferred.promise;
     }
 
 
-     function trySendAsset(req, res) {
+     function trySendAsset(req, res, next) {
         console.log('try send asset v3')
         try{
             //var reqData = JSON.parse(req.body)
@@ -168,14 +168,10 @@ module.exports = (function () {
                  api.seedMetadata(data.metadata.sha1)
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs, coloredOutputIndexes: data.coloredOutputIndexes });
             })
-            .catch(function(error){
-                 console.log(error)
-                 res.status(error.json ? 404 : 500).send( error.json ? error.json : { error: error.message });
-            });  
+            .catch(next);
         }
         catch(e) {
-            console.log(e)
-             res.status(500).send({ error: e.message });
+            next(e)
         }
     }
 

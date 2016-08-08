@@ -7,6 +7,7 @@ module.exports = (function () {
     var Q = require("q");
     var AWS = require("aws-sdk");
     var api = require('../../coluutils.js');
+    var errors = require('cc-errors');
 
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
@@ -37,9 +38,9 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "issueAsset"
             },
-            'action': function (req, res) {
+            'action': function (req, res, next) {
                 console.log("issue action");
-                tryIssueAsset(req, res);
+                tryIssueAsset(req, res, next);
             }
         };
 
@@ -85,9 +86,9 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "broadcastTx"
             },
-            'action': function (req, res) {
+            'action': function (req, res, next) {
                 console.log("broadcast asset action");
-                tryBroadcastAsset(req, res);
+                tryBroadcastAsset(req, res, next);
             }
         };
 
@@ -110,13 +111,13 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "getAssetMetadata"
             },
-            'action': function (req, res) {
+            'action': function (req, res, next) {
                 var verbosity = parseInt(req.query.verbosity)
                 verbosity = ([0,1].indexOf(verbosity) > -1)? verbosity : 1
                 api.getAssetMetadata(req.params.assetId, req.params.utxo, verbosity).
                 then(
                     function(data) { res.status(200).send(data) }, 
-                    function(err) { res.status(400).send({error: err.message}) } 
+                    next
                 )
             }
         };
@@ -161,15 +162,15 @@ module.exports = (function () {
                 "method": "GET",
                 "parameters": [
                         sw.pathParam("assetId", "ID of Asset we want to get info for", "string"),
-                        sw.pathParam("numConfirmations", "min confermations (optional)", "integer", false)
+                        sw.pathParam("numConfirmations", "min confirmations (optional)", "integer", false)
                 ],
                 "type": "assetHolders",
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "getStakeholders"
             },
-            'action': function (req, res) {
+            'action': function (req, res, next) {
                 console.log("get stakeholders action");
-                trygetAssetStakeholders(req, res);
+                trygetAssetStakeholders(req, res, next);
             }
         };
 
@@ -181,31 +182,7 @@ module.exports = (function () {
 
     }
 
-    /**
-     * @api {get} /asset/:id Request User information
-     * @apiName GetAssetMetadata
-     * @apiGroup Color
-     *
-     * @apiParam {Number} id Asset unique ID.
-     *
-     * @apiSuccess {Object} AssetMetadata asset metadata.
-     * 
-     */
-    function tryGetAddress(req, res) {
-        try {
-            var adder = utils.getAssetAddressId(req.body.address);
-            client = redis.createClient();
-            client.hmset("addresses", req.body.address, req.body.email, function(err, data){
-                console.log(data);
-            });
-            res.json({adress: adder});
-        }
-        catch(e) {
-             res.status(500).send({ error: e.message });
-        }
-    }
-
-    function tryBroadcastAsset(req, res) {
+    function tryBroadcastAsset(req, res, next) {
 
         console.log("tryBroadcastAsset")
         api.broadcastTx(req.body.txHex).
@@ -213,15 +190,12 @@ module.exports = (function () {
             api.requestParseTx(txid);
             res.status(200).send({txid: txid});
         }).
-        catch(function(error) { 
-            console.log({ error: error.message, stack: error.stack});
-            res.status(500).send({ error: error.message })
-        }).done();
+        catch(next).done();
 
     }
 
 
-    function tryIssueAsset(req, res) {
+    function tryIssueAsset(req, res, next) {
 
         console.log("issueAsset")
         validateInput(req.body).
@@ -235,19 +209,9 @@ module.exports = (function () {
             if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
             res.status(200).send(response);
         }).
-        catch(function(error) { 
-            console.log({ error: error.message, stack: error.stack});
-            res.status(error.json ? 404 : 500).send(error.json ? error.json : { error: error.message })
-        }).done();
+        catch(next).done();
 
     }
-
-
-    function returnError(res, error) {
-         console.log(arguments);
-         res.status(500).send({ error: error.message }) 
-    }
-
 
     function checkParameters(input) {
         var deferred = Q.defer()
@@ -258,19 +222,19 @@ module.exports = (function () {
                     return true
                 }
                 return false
-            })) { deferred.reject(new Error("can't use both an address and pubKeys, please choose one")) }
+            })) { deferred.reject(new errors.ValidationError({explanation: "Can't use both an address and pubKeys, please choose one"})) }
             else if(transferArr.some(function(transfer) {
                 if(transfer.pubKeys && !transfer.m) {
                     return true
                 }
                 return false
-            })) { deferred.reject(new Error("missing parameter m, number for signatures required for multisig reedem")) }
+            })) { deferred.reject(new errors.ValidationError({explanation: "Missing parameter m, number for signatures required for multisig reedem"})) }
             else if(transferArr.some(function(transfer) {
                 if(!transfer.pubKeys && !transfer.address) {
                     return true
                 }
                 return false
-            })) { deferred.reject(new Error("missing parameter address or pubKeys in transfer object")) }
+            })) { deferred.reject(new errors.ValidationError({explanation: "Missing parameter address or pubKeys in transfer object"})) }
 
             else { deferred.resolve(input) }
         }
@@ -304,7 +268,7 @@ module.exports = (function () {
             deferred.resolve(input);
         }
         else {
-            deferred.reject(new Error("input is invalid missing: " + missing));
+            deferred.reject(new errors.ValidationError({explanation: ('Input is invalid. Missing: ' + missing)}));
         }
            
         return deferred.promise;
@@ -313,7 +277,7 @@ module.exports = (function () {
 
     
 
-    function trySendAsset(req, res) {
+    function trySendAsset(req, res, next) {
         console.log('try send asset v2')
         try{
             //var reqData = JSON.parse(req.body)
@@ -326,145 +290,24 @@ module.exports = (function () {
                  api.seedMetadata(data.metadata.sha1);
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
             })
-            .catch(function(error) {
-                 console.log(error)
-                 res.status(error.json ? 404 : 500).send( error.json ? error.json : { error: error.message });
-            });  
+            .catch(next);  
         }
         catch(e) {
-            console.log(e)
-             res.status(500).send({ error: e.message });
+            next(e)
         }
     }
 
-    function trygetAssetStakeholders(req, res) {
+    function trygetAssetStakeholders(req, res, next) {
         try{
             api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations)
             .then(function(data) {             
                  res.json(data);
             })
-            .catch(function(error){
-                 res.status(500).send({ error: error.message });
-            });  
+            .catch(next);  
         }
         catch(e) {
-             res.status(500).send({ error: e.message });
+            next(e)
         }
-    }
-
-    function newAssetResponseFromOpenAssets(newAsset, callback) {
-        try {
-            var hex = JSON.parse(newAsset.transaction);
-            var resp = {
-                txHex: hex.raw,
-                metadata: newAsset.asset.metadata,
-                assetId: newAsset.assetId,
-                assetAdress: newAsset.asset.address
-            }
-            callback(resp, null);
-        }
-        catch (e) {
-            console.log(e);
-            callback(null, e);
-        }
-    }
-
-    function getOpenAssetsItem(AssetDefinition) {
-        var deferred = Q.defer();
-        if (AssetDefinition.selfhost) {
-            var openAsset = {
-                fees: AssetDefinition.fee,
-                from: AssetDefinition.issue_adress,
-                address: utils.getAssetAddressId(AssetDefinition.issue_adress),
-                amount: AssetDefinition.amount,
-                metadata: "u=" + AssetDefinition.metadat_url
-            };
-            deferred.resolve(openAsset);
-        }
-        else {
-            hostMetadataFile(AssetDefinition)
-            .then(function (url) {
-                var openAsset = {
-                    fees: AssetDefinition.fee,
-                    from: AssetDefinition.issue_adress,
-                    address: utils.getAssetAddressId(AssetDefinition.issue_adress),
-                    amount: AssetDefinition.amount,
-                    metadata: "u=" + url
-                }
-                deferred.resolve(openAsset);
-            },
-            function (error) {
-                console.log(error);
-                deferred.reject(new Error("error code was " + error));
-            });
-
-        }
-
-        return deferred.promise;
-    }
-
-    function hostMetadataFile(AssetDefinition) {
-        console.log("hostMetadataFile");
-       var deferred = Q.defer();
-        if(config.useS3 && process.env.AWSAKI && process.env.AWSSSK) {
-              console.log("s3");
-                 AWS.config.update({ accessKeyId: process.env.AWSAKI,
-                        secretAccessKey: process.env.AWSSSK
-                    });
-
-                var s3bucket = new AWS.S3({params: {Bucket: 'coloredcoin-assets'}});
-                var longurl = generateLocalMetadataPath(AssetDefinition);
-                google.getShortUrl(longurl)
-                .then(function (url) {
-                    AssetDefinition.contract_url = url;
-                    var metadata = utils.getMetadataFromAsset(AssetDefinition);
-                    s3bucket.upload({Key: AssetDefinition.short_name, Body:JSON.stringify(metadata), ContentType: 'application/json' }, function(err, data) {
-                        if (err) {
-                          console.log("Error uploading data: ", err);
-                            deferred.reject(new Error("Status code was " + err));
-                        } else {
-                          console.log("Successfully uploaded data to myBucket/myKey");
-                           deferred.resolve(url);
-                        }
-                    });
-                }, function (error) {
-                    deferred.reject(new Error("Status code was " + response.statusCode));
-                });
-
-                
-        }
-        else
-        {
-            var longurl = generateLocalMetadataPath(AssetDefinition);
-            google.getShortUrl(longurl)
-            .then(function (url) {
-                AssetDefinition.contract_url = url;
-                utils.createMetadata(AssetDefinition);
-                deferred.resolve(url);
-            },
-            function (error) {
-                deferred.reject(new Error("Status code was " + response.statusCode));
-            });
-            
-        }
-        return deferred.promise;
-      
-    }
-
-    function generateLocalMetadataPath(AssetDefinition) {
-        if(config.useS3) {
-             var path = "https://s3.amazonaws.com/coloredcoin-assets/" + AssetDefinition.short_name;
-             return path;
-        }
-        else
-        {
-            var path = config.machineurl + "/metadata/" + AssetDefinition.short_name;
-            return path;
-        }
-    }
-
-    function returnIssuedAsset(transaction) {
-        return transaction
     }
 
     return color;

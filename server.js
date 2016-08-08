@@ -8,6 +8,8 @@ var bodyParser = require('body-parser')
 var cors = require('cors')
 var piwik = require('./piwik')
 var morgan = require('morgan')
+var requestId = require('cc-request-id')
+var errors = require('cc-errors')
 
 var fs = require('fs')
 var log4js = require('log4js')
@@ -107,6 +109,10 @@ app.use(function (req, res, next) {
   next()
 })
 
+if (config.secret) {
+  app.use(requestId({secret: config.secret, namespace: 'coloredcoinsd'}))
+}
+
 if (config.piwik.enabled) {
   console.log('Piwik is ENABLED, its configuration is: ' + JSON.stringify(config.piwik))
   app.use(piwik(config.piwik))
@@ -115,6 +121,9 @@ if (config.piwik.enabled) {
 }
 
 controllers.register(app)
+app.get('/error', function (req, res, next) {
+  next(new errors.InvalidTxidError({explanation: 'this is some error'}))
+})
 
 var docs_handler = express.static(__dirname + '/node_modules/swagger-node-express/swagger-ui');
 app.get(/^\/docs(\/.*)?$/, function (req, res, next) {
@@ -141,12 +150,7 @@ app.use('/metadata', express.static(__dirname + '/static/metadata', options))
 app.use('/doc', express.static(__dirname + '/doc'))
 app.use('/', express.static(__dirname + '/doc'))
 
-app.use(function (err, req, res, next) {
-  if (err) {
-    console.log('Global Error', err)
-    res.send(400, 'invalid json')
-  }
-})
+app.use(errors.errorHandler({env: config.env}))
 
 var port = process.env.PORT || 8080
 app.listen(port)
