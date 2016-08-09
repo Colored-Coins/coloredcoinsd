@@ -163,10 +163,12 @@ module.exports = (function () {
             validateInput(req.body, null, ['from', 'sendutxo']).
             then(checkParameters).
             then(api.uploadMetadata).
-            then(api.createSendAssetTansaction).
+            then(function (data) {
+              return api.createSendAssetTansaction(data, req.service && req.service.headersToForward)
+            }).
             then(function(data){
-                 api.seedMetadata(data.metadata.sha1)
-                 res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs, coloredOutputIndexes: data.coloredOutputIndexes });
+              api.seedMetadata(data.metadata.sha1)
+              res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs, coloredOutputIndexes: data.coloredOutputIndexes });
             })
             .catch(next);
         }

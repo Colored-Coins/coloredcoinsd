@@ -61,9 +61,9 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "sendAsset"
             },
-            'action': function sendAsset(req, res) {
+            'action': function sendAsset(req, res, next) {
                 console.log("send asset action");
-                trySendAsset(req, res);
+                trySendAsset(req, res, next);
             }
         };
 
@@ -113,8 +113,9 @@ module.exports = (function () {
             },
             'action': function (req, res, next) {
                 var verbosity = parseInt(req.query.verbosity)
+                var headersToForward = req.service && req.service.headersToForward
                 verbosity = ([0,1].indexOf(verbosity) > -1)? verbosity : 1
-                api.getAssetMetadata(req.params.assetId, req.params.utxo, verbosity).
+                api.getAssetMetadata(req.params.assetId, req.params.utxo, verbosity, headersToForward).
                 then(
                     function(data) { res.status(200).send(data) }, 
                     next
@@ -140,13 +141,12 @@ module.exports = (function () {
                 "errorResponses": [swagger.errors.notFound('asset')],
                 "nickname": "getAddressInfo"
             },
-            'action': function (req, res) {
-              api.getAddressInfo(req.params.address).
-              then(function(data) {
+            'action': function (req, res, next) {
+              api.getAddressInfo(req.params.address, req.service && req.service.headersToForward).
+              then(function (data) {
                 var jsondata = api.safeParse(data)
                 res.status(200).send(Array.isArray(req.params.address) ? jsondata : jsondata[0])
-              },
-              function (data) { res.status(400).send(data) })
+              }, next)
             }
         };
 
@@ -183,11 +183,12 @@ module.exports = (function () {
     }
 
     function tryBroadcastAsset(req, res, next) {
-
         console.log("tryBroadcastAsset")
-        api.broadcastTx(req.body.txHex).
+        var headersToForward = req.service && req.service.headersToForward
+
+        api.broadcastTx(req.body.txHex, headersToForward).
         then(function(txid){
-            api.requestParseTx(txid);
+            api.requestParseTx(txid, headersToForward);
             res.status(200).send({txid: txid});
         }).
         catch(next).done();
@@ -201,13 +202,15 @@ module.exports = (function () {
         validateInput(req.body).
         then(checkParameters).
         then(api.uploadMetadata).
-        then(api.createIssueTransaction).
-        then(function(data){
-            api.seedMetadata(data.metadata.sha1)
-            var response = {txHex: data.txHex, assetId: data.assetId, coloredOutputIndexes: data.coloredOutputIndexes }
-            if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
-            if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
-            res.status(200).send(response);
+        then(function (metadata) {
+          return api.createIssueTransaction(metadata, req.service && req.service.headersToForward)
+        }).
+        then(function(data) {
+          api.seedMetadata(data.metadata.sha1)
+          var response = {txHex: data.txHex, assetId: data.assetId, coloredOutputIndexes: data.coloredOutputIndexes }
+          if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
+          if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
+          res.status(200).send(response);
         }).
         catch(next).done();
 
@@ -285,7 +288,9 @@ module.exports = (function () {
             validateInput(req.body, null, ['from', 'sendutxo']).
             then(checkParameters).
             then(api.uploadMetadata).
-            then(api.createSendAssetTansaction).
+            then(function (data) {
+              return api.createSendAssetTansaction(data, req.service && req.service.headersToForward)
+            }).
             then(function(data) {
                  api.seedMetadata(data.metadata.sha1);
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
@@ -299,7 +304,7 @@ module.exports = (function () {
 
     function trygetAssetStakeholders(req, res, next) {
         try{
-            api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations)
+            api.getAssetStakeholders(req.params.assetId, req.params.numConfirmations, req.service.headersToForward)
             .then(function(data) {             
                  res.json(data);
             })

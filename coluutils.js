@@ -198,14 +198,14 @@ var get_opreturn_data = function (asm) {
         return deferred.promise;
     }
 
-    coluutils.createIssueTransaction = function createIssueTransaction(metadata) {
+    coluutils.createIssueTransaction = function createIssueTransaction (metadata, headersToForward) {
         var deferred = Q.defer();
         metadata.divisibility = metadata.divisibility || 0
         metadata.aggregationPolicy = metadata.aggregationPolicy || 'aggregatable'
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
-        addInputsForIssueTransaction(tx, metadata).
+        addInputsForIssueTransaction(tx, metadata, headersToForward).
         then(function(args){
             var txResponse = encodeColorScheme(args);
             deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs, coloredOutputIndexes: txResponse.coloredOutputIndexes});
@@ -218,12 +218,12 @@ var get_opreturn_data = function (asm) {
         return deferred.promise;
     }
 
-     coluutils.createSendAssetTansaction = function createSendAssetTansaction(metadata) {
+     coluutils.createSendAssetTansaction = function createSendAssetTansaction(metadata, headersToForward) {
         var deferred = Q.defer();
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
-        addInputsForSendTransaction(tx, metadata).
+        addInputsForSendTransaction(tx, metadata, headersToForward).
         then(validateFees).
         then(function(data){
             console.log(data.tx)
@@ -360,11 +360,11 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity) {
+    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity, headersToForward) {
       var self = this
        var deferred = Q.defer()
 
-        getAssetInfo(assetId, utxo, verbosity).
+        getAssetInfo(assetId, utxo, verbosity, headersToForward).
         then(function(data){
           if(!data.issuanceTxid) {
             if(utxo) {
@@ -379,8 +379,8 @@ data.tx.outs.forEach( function (txOut) {
           {
             var txid = utxo.split(':')[0]
             var promises = []
-            promises.push(getTransastion(data.issuanceTxid))
-            if(data.issuanceTxid !== txid) promises.push(getTransastion(txid))
+            promises.push(getTransaction(data.issuanceTxid, headersToForward))
+            if(data.issuanceTxid !== txid) promises.push(getTransaction(txid, headersToForward))
 
             console.log('requesting issue tx: ' + data.issuanceTxid)
             console.log('requesting utxo tx: ' + txid)
@@ -624,12 +624,12 @@ data.tx.outs.forEach( function (txOut) {
       }
     }
 
-    function getUnspentArrayByAddressOrUtxo(address, utxo) {
+    function getUnspentArrayByAddressOrUtxo(address, utxo, headersToForward) {
       var deferred = Q.defer();
       try{
         if(utxo) {
           console.log('using specific utxo: ' + utxo)
-          getUtxo(Array.isArray(utxo) ? utxo : [utxo]).
+          getUtxo(Array.isArray(utxo) ? utxo : [utxo], headersToForward).
           then(function (data) {
             if(Array.isArray(data)) {
                 var reply = []
@@ -654,7 +654,7 @@ data.tx.outs.forEach( function (txOut) {
         }
         else {
           console.log('using utxo for address: ' + address)
-          getUnspentsByAddress(Array.isArray(address) ? address : [address]).
+          getUnspentsByAddress(Array.isArray(address) ? address : [address], headersToForward).
           then(function (data) {
               var utxos = []
               var jsondata = data
@@ -674,7 +674,7 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-     function getUtxo(utxo) {
+     function getUtxo(utxo, headersToForward) {
 
       var deferred = Q.defer();
         var args = {
@@ -682,7 +682,7 @@ data.tx.outs.forEach( function (txOut) {
                     data: {
                       utxos: []
                     },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
          try{
 
@@ -716,12 +716,12 @@ data.tx.outs.forEach( function (txOut) {
       
     }
 
-    function getTransastion(txid) {
+    function getTransaction(txid, headersToForward) {
 
       var deferred = Q.defer();
         var args = {
                     path: { "txid": txid },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
          try{
 
@@ -729,15 +729,15 @@ data.tx.outs.forEach( function (txOut) {
         client.methods.gettransaction(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getTransastion:(200)");
+                console.log("getTransaction:(200)");
                 deferred.resolve(data);
             }
             else if(data) {
-                console.log("getTransastion: rejecting with:", response.statusCode, data);
+                console.log("getTransaction: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
-                console.log("getTransastion: rejecting with: " + response.statusCode);
+                console.log("getTransaction: rejecting with: " + response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -753,12 +753,12 @@ data.tx.outs.forEach( function (txOut) {
 
 
 
-coluutils.broadcastTx = function broadcastTx(txhex) {
+coluutils.broadcastTx = function broadcastTx(txhex, headersToForward) {
 
       var deferred = Q.defer();
         var args = {
                     data: { "txHex": txhex },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
          try{
 
@@ -766,15 +766,15 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
         client.methods.broadcasttx(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getTransastion:(200)");
+                console.log("getTransaction:(200)");
                 deferred.resolve([data]);
             }
             else if(data) {
-                console.log("getTransastion: rejecting with:", response.statusCode, data);
+                console.log("getTransaction: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
-                console.log("getTransastion: rejecting with: " + response.statusCode);
+                console.log("getTransaction: rejecting with: " + response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -789,12 +789,12 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
     }   
 
 
-coluutils.requestParseTx = function requestParseTx(txid)
+coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
     {
         var deferred = Q.defer();
         var args = {
                     data: { "txid": txid },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
                           try{
 
@@ -825,12 +825,12 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
 
 
-    function getAssetInfo(assetId, utxo, verbosity)
+    function getAssetInfo(assetId, utxo, verbosity, headersToForward)
     {
         var deferred = Q.defer();
         var args = {
                     path: { "assetId": assetId, "utxo": utxo, "verbosity": verbosity },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
                 }
                           try{
 
@@ -859,13 +859,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
         return deferred.promise;
     }
 
-    function getUnspentsByAddress(addresses)
+    function getUnspentsByAddress(addresses, headersToForward)
     {
         var deferred = Q.defer();
         addresses = _.uniq(addresses)
         var args = {
                     data: {"addresses" : addresses },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
                 }
                           try{
 
@@ -914,7 +914,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
        return fee
     }
 
-    function addInputsForSendTransaction(tx, metadata) {
+    function addInputsForSendTransaction(tx, metadata, headersToForward) {
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
         var totalInputs = { amount: 0 }
@@ -925,7 +925,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         
         try{
         if(metadata.from || metadata.sendutxo) {
-          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo)
+          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo, headersToForward)
           .then(function(utxos){
             if(metadata.from)  
                 console.log('got unspents for address: ' + metadata.from  + " from block explorer")
@@ -1142,7 +1142,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         return true
     }
 
-    function addInputsForIssueTransaction(tx, metadata) {
+    function addInputsForIssueTransaction(tx, metadata, headersToForward) {
         var deferred = Q.defer()
         var totalInputs = { amount: 0 }
         //var metadata = safeParse(metadata)
@@ -1178,7 +1178,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         // tempararly work with bitcoind though 
         // check there is no op_return in tx for the utxo we are about to use
         // TODO: need to check if we can decode it and its ours
-        getUnspentsByAddress([metadata.issueAddress])
+        getUnspentsByAddress([metadata.issueAddress], headersToForward)
         .then(function (data) {
             var jsonresponse = data
             var utxos = []
@@ -1397,13 +1397,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
       return deferred.promise
     }
 
-    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum) {
+    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum, headersToForward) {
         console.log('getAssetStakeholders: ' + assetid)
         minconfnum = minconfnum || 0
         var deferred = Q.defer();
         var args = {
                     path: { "assetid": assetid, "minconf": minconfnum },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
                 }
        try{
         client.methods.getassetholders(args, function (data, response) {
@@ -1431,8 +1431,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
     }
 
 
-    coluutils.getAddressInfo = function getAddressInfo(address) {
-        return getUnspentsByAddress(Array.isArray(address) ? address : [address])
+    coluutils.getAddressInfo = function getAddressInfo(address, headersToForward) {
+        return getUnspentsByAddress(Array.isArray(address) ? address : [address], headersToForward)
     }
 
     function getNextOutputValue(metadata) {
