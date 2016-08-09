@@ -698,7 +698,7 @@ data.tx.outs.forEach( function (txOut) {
                 deferred.resolve([data]);
             }
             else if(data) {
-                console.log("getUtxo: rejecting with: ", response.statusCode, data);
+                console.log("getUtxo: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
@@ -733,7 +733,7 @@ data.tx.outs.forEach( function (txOut) {
                 deferred.resolve(data);
             }
             else if(data) {
-                console.log("getTransastion: rejecting with: ", response.statusCode, data);
+                console.log("getTransastion: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
@@ -770,7 +770,7 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
                 deferred.resolve([data]);
             }
             else if(data) {
-                console.log("getTransastion: rejecting with: ", response.statusCode, data);
+                console.log("getTransastion: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
@@ -806,11 +806,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(safeParse(data));
             }
             else if(data) {
-                console.log("requestParseTx: rejecting with: ", response.statusCode, data);
+                console.log("requestParseTx: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
-                console.log("requestParseTx: rejecting with: ", response.statusCode);
+                console.log("requestParseTx: rejecting with:", response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -842,7 +842,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(safeParse(data));
             }
             else if(data) {
-                console.log("getassetinfo: rejecting with: ", response.statusCode, data);
+                console.log("getassetinfo: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
@@ -877,7 +877,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(data);
             }
             else if(data) {
-                console.log("getUnspentsByAddress: rejecting with: ", response.statusCode, data);
+                console.log("getUnspentsByAddress: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
@@ -1413,11 +1413,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(safeParse(data));
             }
             else if(data) {
-                console.log("getAssetStakeholders: rejecting with: ", response.statusCode, data);
+                console.log("getAssetStakeholders: rejecting with:", response.statusCode, data);
                 deferred.reject(data);
             }
             else {
-                console.log("getAssetStakeholders: rejecting with: ", response.statusCode);
+                console.log("getAssetStakeholders: rejecting with:", response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
