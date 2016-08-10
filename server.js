@@ -10,6 +10,8 @@ var piwik = require('./piwik')
 var morgan = require('morgan')
 var requestId = require('cc-request-id')
 var errors = require('cc-errors')
+var session = require('continuation-local-storage').createNamespace(config.serverName)
+var clsify = require('cls-middleware')
 
 var fs = require('fs')
 var log4js = require('log4js')
@@ -109,8 +111,13 @@ app.use(function (req, res, next) {
   next()
 })
 
+app.use(clsify(session))
+app.use(function (req, res, next) {
+  session.set('context', {req: req, res: res})
+  next()
+})
 if (config.secret) {
-  app.use(requestId({secret: config.secret, namespace: 'coloredcoinsd'}))
+  app.use(requestId({secret: config.secret, namespace: config.serverName}))
 }
 
 if (config.piwik.enabled) {

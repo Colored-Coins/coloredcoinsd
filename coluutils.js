@@ -12,6 +12,7 @@ module.exports = (function () {
     var assetIdencoder = require('cc-assetid-encoder')
     var _ = require('lodash')
     var rsa = require('node-rsa')
+    var session = require('continuation-local-storage').getNamespace('coloredcoinsd')
     var findBestMatchByNeededAssets = require('./modules/findBestMatchByNeededAssets')
 
     
@@ -198,14 +199,14 @@ var get_opreturn_data = function (asm) {
         return deferred.promise;
     }
 
-    coluutils.createIssueTransaction = function createIssueTransaction (metadata, headersToForward) {
+    coluutils.createIssueTransaction = function createIssueTransaction (metadata) {
         var deferred = Q.defer();
         metadata.divisibility = metadata.divisibility || 0
         metadata.aggregationPolicy = metadata.aggregationPolicy || 'aggregatable'
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
-        addInputsForIssueTransaction(tx, metadata, headersToForward).
+        addInputsForIssueTransaction(tx, metadata).
         then(function(args){
             var txResponse = encodeColorScheme(args);
             deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs, coloredOutputIndexes: txResponse.coloredOutputIndexes});
@@ -218,12 +219,12 @@ var get_opreturn_data = function (asm) {
         return deferred.promise;
     }
 
-     coluutils.createSendAssetTansaction = function createSendAssetTansaction(metadata, headersToForward) {
+     coluutils.createSendAssetTansaction = function createSendAssetTansaction (metadata) {
         var deferred = Q.defer();
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
-        addInputsForSendTransaction(tx, metadata, headersToForward).
+        addInputsForSendTransaction(tx, metadata).
         then(validateFees).
         then(function(data){
             console.log(data.tx)
@@ -360,11 +361,11 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity, headersToForward) {
+    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity) {
       var self = this
        var deferred = Q.defer()
 
-        getAssetInfo(assetId, utxo, verbosity, headersToForward).
+        getAssetInfo(assetId, utxo, verbosity).
         then(function(data){
           if(!data.issuanceTxid) {
             if(utxo) {
@@ -379,8 +380,8 @@ data.tx.outs.forEach( function (txOut) {
           {
             var txid = utxo.split(':')[0]
             var promises = []
-            promises.push(getTransaction(data.issuanceTxid, headersToForward))
-            if(data.issuanceTxid !== txid) promises.push(getTransaction(txid, headersToForward))
+            promises.push(getTransaction(data.issuanceTxid))
+            if(data.issuanceTxid !== txid) promises.push(getTransaction(txid))
 
             console.log('requesting issue tx: ' + data.issuanceTxid)
             console.log('requesting utxo tx: ' + txid)
@@ -624,12 +625,12 @@ data.tx.outs.forEach( function (txOut) {
       }
     }
 
-    function getUnspentArrayByAddressOrUtxo(address, utxo, headersToForward) {
+    function getUnspentArrayByAddressOrUtxo(address, utxo) {
       var deferred = Q.defer();
       try{
         if(utxo) {
           console.log('using specific utxo: ' + utxo)
-          getUtxo(Array.isArray(utxo) ? utxo : [utxo], headersToForward).
+          getUtxo(Array.isArray(utxo) ? utxo : [utxo]).
           then(function (data) {
             if(Array.isArray(data)) {
                 var reply = []
@@ -654,7 +655,7 @@ data.tx.outs.forEach( function (txOut) {
         }
         else {
           console.log('using utxo for address: ' + address)
-          getUnspentsByAddress(Array.isArray(address) ? address : [address], headersToForward).
+          getUnspentsByAddress(Array.isArray(address) ? address : [address]).
           then(function (data) {
               var utxos = []
               var jsondata = data
@@ -674,7 +675,7 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-     function getUtxo(utxo, headersToForward) {
+     function getUtxo(utxo) {
 
       var deferred = Q.defer();
         var args = {
@@ -682,7 +683,7 @@ data.tx.outs.forEach( function (txOut) {
                     data: {
                       utxos: []
                     },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
          try{
 
@@ -716,12 +717,12 @@ data.tx.outs.forEach( function (txOut) {
       
     }
 
-    function getTransaction(txid, headersToForward) {
+    function getTransaction(txid) {
 
       var deferred = Q.defer();
         var args = {
                     path: { "txid": txid },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
          try{
 
@@ -753,12 +754,12 @@ data.tx.outs.forEach( function (txOut) {
 
 
 
-coluutils.broadcastTx = function broadcastTx(txhex, headersToForward) {
+coluutils.broadcastTx = function broadcastTx(txhex) {
 
       var deferred = Q.defer();
         var args = {
                     data: { "txHex": txhex },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
          try{
 
@@ -789,12 +790,12 @@ coluutils.broadcastTx = function broadcastTx(txhex, headersToForward) {
     }   
 
 
-coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
+coluutils.requestParseTx = function requestParseTx(txid)
     {
         var deferred = Q.defer();
         var args = {
                     data: { "txid": txid },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
                           try{
 
@@ -825,12 +826,12 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
 
 
 
-    function getAssetInfo(assetId, utxo, verbosity, headersToForward)
+    function getAssetInfo(assetId, utxo, verbosity)
     {
         var deferred = Q.defer();
         var args = {
                     path: { "assetId": assetId, "utxo": utxo, "verbosity": verbosity },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
                           try{
 
@@ -859,17 +860,16 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
         return deferred.promise;
     }
 
-    function getUnspentsByAddress(addresses, headersToForward)
+    function getUnspentsByAddress(addresses)
     {
         var deferred = Q.defer();
         addresses = _.uniq(addresses)
         var args = {
                     data: {"addresses" : addresses },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
                           try{
 
-      
         client.methods.getaddressutxos(args, function (data, response) {
             console.log(data.toString());
             if (response.statusCode == 200) {
@@ -914,7 +914,7 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
        return fee
     }
 
-    function addInputsForSendTransaction(tx, metadata, headersToForward) {
+    function addInputsForSendTransaction(tx, metadata) {
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
         var totalInputs = { amount: 0 }
@@ -925,7 +925,7 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
         
         try{
         if(metadata.from || metadata.sendutxo) {
-          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo, headersToForward)
+          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo)
           .then(function(utxos){
             if(metadata.from)  
                 console.log('got unspents for address: ' + metadata.from  + " from block explorer")
@@ -1142,7 +1142,7 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
         return true
     }
 
-    function addInputsForIssueTransaction(tx, metadata, headersToForward) {
+    function addInputsForIssueTransaction(tx, metadata) {
         var deferred = Q.defer()
         var totalInputs = { amount: 0 }
         //var metadata = safeParse(metadata)
@@ -1178,7 +1178,7 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
         // tempararly work with bitcoind though 
         // check there is no op_return in tx for the utxo we are about to use
         // TODO: need to check if we can decode it and its ours
-        getUnspentsByAddress([metadata.issueAddress], headersToForward)
+        getUnspentsByAddress([metadata.issueAddress])
         .then(function (data) {
             var jsonresponse = data
             var utxos = []
@@ -1397,13 +1397,13 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
       return deferred.promise
     }
 
-    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum, headersToForward) {
+    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum) {
         console.log('getAssetStakeholders: ' + assetid)
         minconfnum = minconfnum || 0
         var deferred = Q.defer();
         var args = {
                     path: { "assetid": assetid, "minconf": minconfnum },
-                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
+                    headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
        try{
         client.methods.getassetholders(args, function (data, response) {
@@ -1431,8 +1431,8 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
     }
 
 
-    coluutils.getAddressInfo = function getAddressInfo(address, headersToForward) {
-        return getUnspentsByAddress(Array.isArray(address) ? address : [address], headersToForward)
+    coluutils.getAddressInfo = function getAddressInfo(address) {
+        return getUnspentsByAddress(Array.isArray(address) ? address : [address])
     }
 
     function getNextOutputValue(metadata) {
@@ -1512,6 +1512,11 @@ coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
 
     function toSatoshi(btc) {
       return btc.mul(100000000);
+    }
+
+    function getHeadersToForward() {
+      var context = session.get('context')
+      return context && context.req && context.req.service && context.req.service.headersToForward
     }
 
     coluutils();
