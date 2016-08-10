@@ -8,6 +8,7 @@ module.exports = (function () {
     var bitcoinjs = require('bitcoinjs-lib')
     var bn = require('bignumber.js')
     var cc = require('cc-transaction')
+    var errors = require('cc-errors')
     var assetIdencoder = require('cc-assetid-encoder')
     var _ = require('lodash')
     var rsa = require('node-rsa')
@@ -197,49 +198,14 @@ var get_opreturn_data = function (asm) {
         return deferred.promise;
     }
 
-
-    coluutils.validateIssueTrasaction = function validateIssueTrasaction(data) {
-      var deferred = Q.defer();
-      // lets check if this is the first issue
-       var key = sha1(sha256(data)).toString('hex');
-       // send key to sevice to check if we already have it
-        AWS.config.update({ accessKeyId: process.env.AWSAKI,
-                        secretAccessKey: process.env.AWSSSK });
-
-
-        var s3bucket = new metadatOfUtxo({params: {Bucket: 'coloredcoin-assets'}});
-        s3bucket.headObject({Key: key}, function(error, headobject){
-
-
-            if(error && error.code === "NotFound") { 
-              //all is well
-              deferred.resolve(data);
-            }
-            else {
-              // are we reissueing
-              if(data.reissue) {
-
-              }
-              else
-                deferred.reject(new Error("cant reissue without correct assetId"));
-          }   
-        });
-
-
-       // check with block explorer that transaction is ok
-       
-       return deferred.promise;
-    }
-
-
-    coluutils.createIssueTransaction = function createIssueTransaction(metadata) {
+    coluutils.createIssueTransaction = function createIssueTransaction (metadata, headersToForward) {
         var deferred = Q.defer();
         metadata.divisibility = metadata.divisibility || 0
         metadata.aggregationPolicy = metadata.aggregationPolicy || 'aggregatable'
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
-        addInputsForIssueTransaction(tx, metadata).
+        addInputsForIssueTransaction(tx, metadata, headersToForward).
         then(function(args){
             var txResponse = encodeColorScheme(args);
             deferred.resolve({txHex: txResponse.tx.toHex(), assetId: args.assetId || "0", metadata: metadata, multisigOutputs: txResponse.multisigOutputs, coloredOutputIndexes: txResponse.coloredOutputIndexes});
@@ -252,12 +218,12 @@ var get_opreturn_data = function (asm) {
         return deferred.promise;
     }
 
-     coluutils.createSendAssetTansaction = function createSendAssetTansaction(metadata) {
+     coluutils.createSendAssetTansaction = function createSendAssetTansaction(metadata, headersToForward) {
         var deferred = Q.defer();
 
         tx = new bitcoinjs.Transaction();
         // find inputs to cover the issuence
-        addInputsForSendTransaction(tx, metadata).
+        addInputsForSendTransaction(tx, metadata, headersToForward).
         then(validateFees).
         then(function(data){
             console.log(data.tx)
@@ -309,7 +275,7 @@ data.tx.outs.forEach( function (txOut) {
          if(config.writemultisig) {
             if(!metadata.sha1 || !metadata.sha2) {
                console.log("something went wrong with torrent sever")
-               throw new Error('missing sha1 or sha2 cannot issue, check torrent server')
+               throw new errors.MetadataMissingShaError()
             }
             encoder.setHash(metadata.sha1, metadata.sha2)
          }
@@ -364,7 +330,7 @@ data.tx.outs.forEach( function (txOut) {
         else if(buffer.leftover && buffer.leftover.length == 2)
               addHashesOutput(args.tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[1], buffer.leftover[0])
         else
-          throw new Error('have hashes and enough room we offested inputs for nothing')
+          throw new errors.CCTransactionConstructionError({explanation: 'have hashes and enough room we offested inputs for nothing'})
 
       }
 
@@ -374,10 +340,13 @@ data.tx.outs.forEach( function (txOut) {
       console.log('all inputs: ' + args.totalInputs.amount + ' all outputs: ' + allOutputValues);
       var lastOutputValue = args.totalInputs.amount - (allOutputValues + metadata.fee)
       if(lastOutputValue < config.mindustvalue) {
-        var totalmisssing =  (config.mindustvalue - lastOutputValue)  + args.totalInputs.amount.toNumber()
-        var reply = new Error('not enough satoshi to cover issuence')
-        reply.json = {error: 'not enough satoshi to cover issuence', missing: config.mindustvalue - lastOutputValue, fee: metadata.fee, total: totalmisssing}        
-        throw reply
+        var totalCost = config.mindustvalue + args.totalInputs.amount.toNumber()
+        throw new errors.NotEnoughFundsError({
+          type: 'issuance',
+          fee: metadata.fee,
+          totalCost: totalCost,
+          missing: config.mindustvalue - lastOutputValue
+        })
       }
       console.log('adding change output with: ' + lastOutputValue)
       console.log('total inputs: ' + args.totalInputs.amount)
@@ -391,16 +360,16 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity) {
+    coluutils.getAssetMetadata = function getAssetMetadata(assetId, utxo, verbosity, headersToForward) {
       var self = this
        var deferred = Q.defer()
 
-        getAssetInfo(assetId, utxo, verbosity).
+        getAssetInfo(assetId, utxo, verbosity, headersToForward).
         then(function(data){
           if(!data.issuanceTxid) {
             if(utxo) {
                 console.log('rejecting request since issuanceTxid is missing for specific utxo')
-                deferred.reject(new Error('missing issuanceTxid for utxo: ' + utxo))
+                deferred.reject(new errors.MissingIssuanceTxidError({utxo: utxo}))
             }
             else {
                 deferred.resolve(data)
@@ -410,8 +379,8 @@ data.tx.outs.forEach( function (txOut) {
           {
             var txid = utxo.split(':')[0]
             var promises = []
-            promises.push(getTransastion(data.issuanceTxid))
-            if(data.issuanceTxid !== txid) promises.push(getTransastion(txid))
+            promises.push(getTransaction(data.issuanceTxid, headersToForward))
+            if(data.issuanceTxid !== txid) promises.push(getTransaction(txid, headersToForward))
 
             console.log('requesting issue tx: ' + data.issuanceTxid)
             console.log('requesting utxo tx: ' + txid)
@@ -474,7 +443,7 @@ data.tx.outs.forEach( function (txOut) {
         }).
         catch(function(error) {
             console.log(error) 
-            deferred.reject(new Error(error))
+            deferred.reject(error)
         });
 
 
@@ -510,15 +479,15 @@ data.tx.outs.forEach( function (txOut) {
             }
             else if(data) {
                 console.log("seed: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                deferred.reject(new errors.SeedMetadataError({status: response.statusCode, data: data}));
             }
             else {
                 console.log("seed: rejecting with: " + response.statusCode);
-                deferred.reject(new Error("Status code was " + response.statusCode));
+                deferred.reject(new errors.SeedMetadataError({status: response.statusCode}));
             }
         }).on('error', function (err) {
                 console.log('seed: something went wrong on the request', err.request.options);
-                deferred.reject(new Error("Status code was " + err.request.options));
+                deferred.reject(new errors.SeedMetadataError({data: err.request.options}));
             });
 
         return deferred.promise;
@@ -554,15 +523,15 @@ data.tx.outs.forEach( function (txOut) {
             }
             else if(data) {
                 console.log("download: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error('no response form torrent server'));
+                deferred.reject(new errors.DownloadMetadataError({status: response.statusCode, data: data}));
             }
             else {
                 console.log("download: rejecting with: " + response.statusCode);
-                deferred.reject(new Error("Status code was " + response.statusCode));
+                deferred.reject(new errors.DownloadMetadataError({status: response.statusCode}));
             }
         }).on('error', function (err) {
                 console.log('download: something went wrong on the request', err.request.options);
-                deferred.reject(new Error("Status code was " + err.request.options));
+                deferred.reject(new errors.DownloadMetadataError({data: err.request.options}));
             });
 
         return deferred.promise;
@@ -584,7 +553,7 @@ data.tx.outs.forEach( function (txOut) {
         if(metadata.metadata) {
           var key = tryEncryptData(metadata)
           if(key && key.error) {
-            deferred.reject(new Error("Encryption error " + key.error))
+            deferred.reject(new errors.UploadMetadataError({explanation: 'Encryption error: ' + key.error}))
             return deferred.promise
           }
           else if(key && key.privateKey) {
@@ -615,15 +584,15 @@ data.tx.outs.forEach( function (txOut) {
             }
             else if(data) {
                 console.log("rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                deferred.reject(new errors.UploadMetadataError({status: response.statusCode, data: data}));
             }
             else {
                 console.log("rejecting with: " + response.statusCode);
-                deferred.reject(new Error("Status code was " + response.statusCode));
+                deferred.reject(new errors.UploadMetadataError({status: response.statusCode}));
             }
         }).on('error', function (err) {
                 console.log('something went wrong on the request', err.request.options);
-                deferred.reject(new Error("Status code was " + err.request.options));
+                deferred.reject(new errors.UploadMetadataError({data: err.request.options}));
             });
 
         return deferred.promise;
@@ -655,12 +624,12 @@ data.tx.outs.forEach( function (txOut) {
       }
     }
 
-    function getUnspentArrayByAddressOrUtxo(address, utxo) {
+    function getUnspentArrayByAddressOrUtxo(address, utxo, headersToForward) {
       var deferred = Q.defer();
       try{
         if(utxo) {
           console.log('using specific utxo: ' + utxo)
-          getUtxo(Array.isArray(utxo) ? utxo : [utxo]).
+          getUtxo(Array.isArray(utxo) ? utxo : [utxo], headersToForward).
           then(function (data) {
             if(Array.isArray(data)) {
                 var reply = []
@@ -685,7 +654,7 @@ data.tx.outs.forEach( function (txOut) {
         }
         else {
           console.log('using utxo for address: ' + address)
-          getUnspentsByAddress(Array.isArray(address) ? address : [address]).
+          getUnspentsByAddress(Array.isArray(address) ? address : [address], headersToForward).
           then(function (data) {
               var utxos = []
               var jsondata = data
@@ -705,7 +674,7 @@ data.tx.outs.forEach( function (txOut) {
     }
 
 
-     function getUtxo(utxo) {
+     function getUtxo(utxo, headersToForward) {
 
       var deferred = Q.defer();
         var args = {
@@ -713,7 +682,7 @@ data.tx.outs.forEach( function (txOut) {
                     data: {
                       utxos: []
                     },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
          try{
 
@@ -729,8 +698,8 @@ data.tx.outs.forEach( function (txOut) {
                 deferred.resolve([data]);
             }
             else if(data) {
-                console.log("getUtxo: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("getUtxo: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
                 console.log("getUtxo: rejecting with: " + response.statusCode);
@@ -747,12 +716,12 @@ data.tx.outs.forEach( function (txOut) {
       
     }
 
-    function getTransastion(txid) {
+    function getTransaction(txid, headersToForward) {
 
       var deferred = Q.defer();
         var args = {
                     path: { "txid": txid },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
          try{
 
@@ -760,15 +729,15 @@ data.tx.outs.forEach( function (txOut) {
         client.methods.gettransaction(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getTransastion:(200)");
+                console.log("getTransaction:(200)");
                 deferred.resolve(data);
             }
             else if(data) {
-                console.log("getTransastion: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("getTransaction: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
-                console.log("getTransastion: rejecting with: " + response.statusCode);
+                console.log("getTransaction: rejecting with: " + response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -784,12 +753,12 @@ data.tx.outs.forEach( function (txOut) {
 
 
 
-coluutils.broadcastTx = function broadcastTx(txhex) {
+coluutils.broadcastTx = function broadcastTx(txhex, headersToForward) {
 
       var deferred = Q.defer();
         var args = {
                     data: { "txHex": txhex },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
          try{
 
@@ -797,15 +766,15 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
         client.methods.broadcasttx(args, function (data, response) {
             console.log(data);
             if (response.statusCode == 200) {
-                console.log("getTransastion:(200)");
+                console.log("getTransaction:(200)");
                 deferred.resolve([data]);
             }
             else if(data) {
-                console.log("getTransastion: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("getTransaction: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
-                console.log("getTransastion: rejecting with: " + response.statusCode);
+                console.log("getTransaction: rejecting with: " + response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -820,12 +789,12 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
     }   
 
 
-coluutils.requestParseTx = function requestParseTx(txid)
+coluutils.requestParseTx = function requestParseTx(txid, headersToForward)
     {
         var deferred = Q.defer();
         var args = {
                     data: { "txid": txid },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward) 
                 }
                           try{
 
@@ -837,11 +806,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(safeParse(data));
             }
             else if(data) {
-                console.log("requestParseTx: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("requestParseTx: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
-                console.log("requestParseTx: rejecting with: " + response.statusCode);
+                console.log("requestParseTx: rejecting with:", response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -856,12 +825,12 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
 
 
-    function getAssetInfo(assetId, utxo, verbosity)
+    function getAssetInfo(assetId, utxo, verbosity, headersToForward)
     {
         var deferred = Q.defer();
         var args = {
                     path: { "assetId": assetId, "utxo": utxo, "verbosity": verbosity },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
                 }
                           try{
 
@@ -873,8 +842,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(safeParse(data));
             }
             else if(data) {
-                console.log("getassetinfo: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("getassetinfo: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
                 console.log("getassetinfo: rejecting with: " + response.statusCode);
@@ -885,18 +854,18 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.reject(new Error("Status code was " + err.request.options));
             });
       }
-      catch(e) { console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); }
+      catch(e) { console.log(e); deferred.reject(new Error("error parsing response from block-explorer")); }
 
         return deferred.promise;
     }
 
-    function getUnspentsByAddress(addresses)
+    function getUnspentsByAddress(addresses, headersToForward)
     {
         var deferred = Q.defer();
         addresses = _.uniq(addresses)
         var args = {
                     data: {"addresses" : addresses },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
                 }
                           try{
 
@@ -908,8 +877,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(data);
             }
             else if(data) {
-                console.log("getUnspentsByAddress: rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(JSON.stringify(data, null, 2)));
+                console.log("getUnspentsByAddress: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
                 console.log("getUnspentsByAddress: rejecting with: " + response.statusCode);
@@ -920,7 +889,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.reject(new Error("Status code was " + err.request.options));
             });
       }
-      catch(e) { console.log(e); deferred.reject(new Error("error parsing respnse form blockexplorer")); }
+      catch(e) { console.log(e); deferred.reject(new Error("error parsing response from block-explorer")); }
 
         return deferred.promise;
     }
@@ -945,7 +914,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
        return fee
     }
 
-    function addInputsForSendTransaction(tx, metadata) {
+    function addInputsForSendTransaction(tx, metadata, headersToForward) {
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
         var totalInputs = { amount: 0 }
@@ -956,7 +925,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         
         try{
         if(metadata.from || metadata.sendutxo) {
-          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo)
+          getUnspentArrayByAddressOrUtxo(metadata.from, metadata.sendutxo, headersToForward)
           .then(function(utxos){
             if(metadata.from)  
                 console.log('got unspents for address: ' + metadata.from  + " from block explorer")
@@ -999,26 +968,29 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   var key = asset;
                   assetUtxos.forEach(function (utxo){ if(utxo.used) {
                       console.log('utxo', utxo)
-                      deferred.reject(new Error('utxo: ' + utxo.txid + ":" + utxo.index + ' is already spent' ))
+                      deferred.reject(new errors.OutputAlreadySpentError({output: utxo.txid + ':' + utxo.index}))
                       return deferred.promise 
                   } })
-                   if(!findBestMatchByNeededAssets (assetUtxos, assetList, key, tx, totalInputs, metadata)) {
-                      deferred.reject(new Error('Not Enough of asset: ' + key ))
+                   if(!findBestMatchByNeededAssets(assetUtxos, assetList, key, tx, totalInputs, metadata)) {
+                      deferred.reject(new errors.NotEnoughAssetsError({asset: key}))
                       return;
                    }
                 }
                 else {
                   console.log("no utxo list")
-                  deferred.reject(new Error('No output with asset: ' + asset ))
+                  deferred.reject(new errors.NoOutputWithSuchAssetError({asset: asset}))
                 }
 
              }
              console.log('reached encoder')
              var encoder = cc.newTransaction(0x4343, CC_TX_VERSION)
-            if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
-              var reply = new Error('not enough satoshi in account or fianance for fees')
-              reply.json = {error: 'not enough satoshi in account or fianance to cover sending', missing: satoshiCost - totalInputs.amount, fee: metadata.fee, total: satoshiCost}            
-              deferred.reject(reply)
+            if(!tryAddingInputsForFee(tx, utxos, totalInputs, metadata, satoshiCost)) {
+              deferred.reject(new errors.NotEnoughFundsError({
+                type: 'transfer',
+                fee: metadata.fee,
+                totalCost: satoshiCost,
+                missing: satoshiCost - totalInputs.amount
+              }))
               console.log('pay it forward')
               return  deferred.promise
             }
@@ -1026,11 +998,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
              for( asset in assetList)
              {
 
-                currentAsset = assetList[asset];
+                var currentAsset = assetList[asset];
                 console.log('encoding asset ' + asset)
                 if(!currentAsset.done) {
                   console.log('current asset state is bad ' + asset)
-                  deferred.reject(new Error('Not Enough aseet of ' + asset ))
+                  deferred.reject(new errors.NotEnoughAssetsError({asset: asset}))
                   return
                 }
                 console.log(currentAsset.addresses)
@@ -1076,7 +1048,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                    if(config.writemultisig) {
                       if(!metadata.sha1 || !metadata.sha2) {
                          console.log("something went wrong with torrent sever")
-                         throw new Error('missing sha1 or sha2 cannot issue, check torrent server')
+                         throw new errors.MetadataMissingShaError()
                       }
                       encoder.setHash(metadata.sha1, metadata.sha2)
                    }
@@ -1092,7 +1064,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   else if(buffer.leftover.length == 2)
                         addHashesOutput(tx, metadata.pubKeyReturnMultisigDust, buffer.leftover[1], buffer.leftover[0])
                   else
-                    throw new Error('have hashes and enough room we offested inputs for nothing')
+                    throw new errors.CCTransactionConstructionError({explanation: 'have hashes and enough room we offested inputs for nothing'})
               }
 
                // add array of colored ouput indexes
@@ -1117,8 +1089,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
             if(lastOutputValue < config.mindustvalue) {
               console.log('trying to add additionl inputs to cover transaction')
               satoshiCost = getInputAmountNeededForTx(tx, metadata.fee)
-              if(!tryAddingInputsForFee(tx, utxos,  totalInputs, metadata, satoshiCost)) {
-                deferred.reject(new Error('not enough satoshi in account for fees' ))
+              if(!tryAddingInputsForFee(tx, utxos, totalInputs, metadata, satoshiCost)) {
+                deferred.reject(new errors.NotEnoughFundsError({
+                  type: 'issuance',
+                  fee: metadata.fee,
+                  totalCost: satoshiCost,
+                  missing: config.mindustvalue - lastOutputValue
+                }))
                 console.log('rejecting~!!!!!')
                 return
               }
@@ -1134,7 +1111,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
           }) // then
         } // if
         else {
-           deferred.reject(new Error('no from address or sendutxo in input, cant create transacion'))
+           deferred.reject(new errors.CCTransactionConstructionError({status: 400, explanation: 'no from address or sendutxo in input'}))
         }
       } //try
       catch(e){
@@ -1165,7 +1142,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         return true
     }
 
-    function addInputsForIssueTransaction(tx, metadata) {
+    function addInputsForIssueTransaction(tx, metadata, headersToForward) {
         var deferred = Q.defer()
         var totalInputs = { amount: 0 }
         //var metadata = safeParse(metadata)
@@ -1201,7 +1178,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
         // tempararly work with bitcoind though 
         // check there is no op_return in tx for the utxo we are about to use
         // TODO: need to check if we can decode it and its ours
-        getUnspentsByAddress([metadata.issueAddress])
+        getUnspentsByAddress([metadata.issueAddress], headersToForward)
         .then(function (data) {
             var jsonresponse = data
             var utxos = []
@@ -1216,8 +1193,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
             //add to transaction enough inputs so we can cover the cost
             //send change if any back to us            
             var current = new bn(0);
-            cost = new bn(getIssuenceCost(metadata));
-            change = new bn(0)
+            var cost = new bn(getIssuenceCost(metadata));
+            var change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
               utxo.value = Math.round(utxo.value)
               if(!utxo.assets || utxo.assets.length == 0) {
@@ -1273,7 +1250,10 @@ coluutils.requestParseTx = function requestParseTx(txid)
         then(function(state) {
           console.log('return the tx to encode')
           if(state.success) deferred.resolve({tx: tx, metadata: metadata, change: state.change, assetId: assetId, totalInputs: state.totalInputs});
-          else  deferred.reject(new Error("Not enough funds to cover issuence"));
+          else deferred.reject(new errors.NotEnoughFundsError({
+            type: 'issuance',
+            explanation: 'address ' + metadata.issueAddress + ' does not have any unused outputs'
+          }));
         }).
         catch(function(error) {
             console.log(error) 
@@ -1313,7 +1293,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
           console.log('encoding asset is locked: ' + !reissueable)
           console.log(opts)
-          assetId = assetIdencoder(opts)
+          var assetId = assetIdencoder(opts)
           console.log('assetId: ' + assetId)
           return assetId
     }
@@ -1417,13 +1397,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
       return deferred.promise
     }
 
-    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum) {
+    coluutils.getAssetStakeholders = function getAssetStakeholders(assetid, minconfnum, headersToForward) {
         console.log('getAssetStakeholders: ' + assetid)
         minconfnum = minconfnum || 0
         var deferred = Q.defer();
         var args = {
                     path: { "assetid": assetid, "minconf": minconfnum },
-                    headers:{"Content-Type": "application/json"} 
+                    headers: _.assign({"Content-Type": "application/json"}, headersToForward)
                 }
        try{
         client.methods.getassetholders(args, function (data, response) {
@@ -1433,11 +1413,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 deferred.resolve(safeParse(data));
             }
             else if(data) {
-                console.log("rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new Error(response.statusCode + " " + data));
+                console.log("getAssetStakeholders: rejecting with:", response.statusCode, data);
+                deferred.reject(data);
             }
             else {
-                console.log("rejecting with: " + response.statusCode);
+                console.log("getAssetStakeholders: rejecting with:", response.statusCode);
                 deferred.reject(new Error("Status code was " + response.statusCode));
             }
         }).on('error', function (err) {
@@ -1451,8 +1431,8 @@ coluutils.requestParseTx = function requestParseTx(txid)
     }
 
 
-    coluutils.getAddressInfo = function getAddressInfo(address) {
-        return getUnspentsByAddress(Array.isArray(address) ? address : [address])
+    coluutils.getAddressInfo = function getAddressInfo(address, headersToForward) {
+        return getUnspentsByAddress(Array.isArray(address) ? address : [address], headersToForward)
     }
 
     function getNextOutputValue(metadata) {
