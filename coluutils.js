@@ -12,7 +12,7 @@ module.exports = (function () {
     var assetIdencoder = require('cc-assetid-encoder')
     var _ = require('lodash')
     var rsa = require('node-rsa')
-    var session = require('continuation-local-storage').getNamespace('coloredcoinsd')
+    var session = require('continuation-local-storage').getNamespace(config.serverName)
     var findBestMatchByNeededAssets = require('./modules/findBestMatchByNeededAssets')
 
     

@@ -33,8 +33,7 @@ var config = {
   mindustvalue: 600,
   mindustvaluemultisig: 700,
   feePerKb: 1000,
-  checkFinanaceValidty: true,
-  secret: 'secret'
+  checkFinanaceValidty: true
 }
 
 
@@ -73,6 +72,6 @@ if (module_exists('./config-local')) {
   config.piwik.version_dim_id = process.env.PIWIK_VERSION_DIM_ID || config.piwik.version_dim_id
   config.piwik.debug = process.env.PIWIK_DEBUG || false
   config.piwik.enabled = config.piwik.url && config.piwik.token && config.piwik.siteid
-  config.secret = process.env.SECRET || config.secret
+  config.secret = process.env.SECRET
   module.exports = config
 }
