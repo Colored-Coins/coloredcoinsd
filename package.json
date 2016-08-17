@@ -19,6 +19,8 @@
     "cc-errors": "~0.0.7",
     "cc-request-id": "~0.0.3",
     "cc-transaction": "^1.1.0",
+    "cls-middleware": "^1.1.0",
+    "continuation-local-storage": "^3.1.7",
     "cors": "^2.7.1",
     "express": "4.10.4",
     "le_node": "^0.2.1",

@@ -1,6 +1,7 @@
 var config = {
   env: 'development',
   testnet: true,
+  serverName: 'coloredcoinsd',
   google_api_key: 'AIzaSyBJfxobLSO_IM9tI1ATWpOelVInNuH1kBM',
   machineurl: 'http://api.coloredcoins.org',
   useS3: true,
@@ -57,6 +58,7 @@ if (module_exists('./config-local')) {
   config.bitcoind.path = process.env.BITCOIND_PATH || config.bitcoind.path
   config.torrentServer.url = process.env.TORRENT_SERVER_URL || config.torrentServer.url
   config.testnet = process.env.TESTNET || config.testnet
+  config.serverName = process.env.SERVERNAME || config.serverName
   config.torrentServer.token = process.env.TORRENT_SERVER_TOKEN || config.torrentServer.token
   config.minfee = parseInt(process.env.MINFEE || '' + config.minfee, 10)
   config.mindustvalue = parseInt(process.env.MINDUSTVALUE || '' + config.mindustvalue, 10)
