@@ -31,7 +31,7 @@ module.exports = (function () {
        //client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressutxos?address=${address}", "GET")
        client.registerMethod("getaddressutxos", config.blockexplorer.url + "/api/getaddressesutxos", "POST")
        client.registerMethod("getassetholders", config.blockexplorer.url + "/api/getassetholders?assetId=${assetid}&confirmations=${minconf}", "GET")
-       client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}&utxo=${utxo}&verbosity=${verbosity}", "GET")
+       client.registerMethod("getassetinfo", config.blockexplorer.url + "/api/getassetinfo?assetId=${assetid}", "GET")
        client.registerMethod("gettransaction", config.blockexplorer.url + "/api/gettransaction?txid=${txid}", "GET")
        client.registerMethod("getutxo", config.blockexplorer.url + "/api/getutxos", "POST")
        client.registerMethod("broadcasttx", config.blockexplorer.url + "/api/transmit", "POST")
@@ -830,12 +830,13 @@ coluutils.requestParseTx = function requestParseTx(txid)
     {
         var deferred = Q.defer();
         var args = {
-                    path: { "assetId": assetId, "utxo": utxo, "verbosity": verbosity },
+                    path: { "assetId": assetId },
                     headers: _.assign({"Content-Type": "application/json"}, getHeadersToForward())
                 }
                           try{
 
-      
+        if (typeof args.utxo !== 'undefined') args.parameters.utxo = utxo
+        if (typeof args.verbosity !== 'undefined') args.parameters.verbosity = verbosity
         client.methods.getassetinfo(args, function (data, response) {
             console.log(data.toString());
             if (response.statusCode == 200) {
@@ -848,11 +849,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
             }
             else {
                 console.log("getassetinfo: rejecting with: " + response.statusCode);
-                deferred.reject(new Error("Status code was " + response.statusCode));
+                deferred.reject(new Error("Status code was ", response.statusCode));
             }
         }).on('error', function (err) {
                 console.log('something went wrong on the request', err.request.options);
-                deferred.reject(new Error("Status code was " + err.request.options));
+                deferred.reject(new Error("Status code was ", err.request.options));
             });
       }
       catch(e) { console.log(e); deferred.reject(new Error("error parsing response from block-explorer")); }
