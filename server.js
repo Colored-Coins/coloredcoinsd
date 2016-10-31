@@ -18,6 +18,23 @@ var _ = require('lodash')
 
 var App = module.exports = {}
 
+
+// Add some string methods, remove it when we'll move to ECMA6 (Node.JS >4.x)
+App.initPolyfills = function() {
+  if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function (suffix) {
+      return this.indexOf(suffix, this.length - suffix.length) !== -1
+    }
+  }
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function (searchString, position) {
+      position = position || 0
+      return this.substr(position, searchString.length) === searchString
+    }
+  }
+}
+
+
 App.init = function(app) {
   app.use(morgan('combined'))
   

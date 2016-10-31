@@ -55,19 +55,6 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV != 'QA') {
   })()
 }
 
-// Add some string methods, remove it when we'll move to ECMA6 (Node.JS >4.x)
-if (!String.prototype.endsWith) {
-  String.prototype.endsWith = function (suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1
-  }
-}
-if (!String.prototype.startsWith) {
-  String.prototype.startsWith = function (searchString, position) {
-    position = position || 0
-    return this.substr(position, searchString.length) === searchString
-  }
-}
-
 if (!process.env.LETOKEN) {
   console.error('No Logentries token found in enviorment')
 } else {

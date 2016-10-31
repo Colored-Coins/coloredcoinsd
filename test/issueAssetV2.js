@@ -71,6 +71,7 @@ describe ('Api tests', function () {
   var expressApp
   before(function(done) {
     expressApp = express()
+    server.initPolyfills()
     server.init(expressApp)
     done()
   })
