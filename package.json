@@ -53,7 +53,7 @@
     "url": "http://localhost:8080"
   },
   "scripts": {
-    "start": "node .\\server.js",
+    "start": "node index.js",
     "test": "mocha --recursive test --reporter-options=xunit.xml",
     "ci-full": "istanbul cover _mocha -- -R xunit-file",
     "test-windows": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha/ -- -R xunit-file && istanbul report html"
