@@ -112,15 +112,15 @@ var findBestGreaterOrEqualAmountUtxo = function (utxos, assetList, key) {
     utxo.score = 0
     var assetAmount = getUtxoAssetAmount(utxo, key)
     if (assetAmount < assetList[key].amount) {
-      console.log('for utxo ' + utxo.txid + ':' + utxo.index + ', assetAmount = ' + assetAmount + ', no score.')
+      // console.log('for utxo ' + utxo.txid + ':' + utxo.index + ', assetAmount = ' + assetAmount + ', no score.')
       return
     }
     foundLargerOrEqualAmountUtxo = true
     if (assetAmount === assetList[key].amount) {
-      console.log('for utxo ' + utxo.txid + ':' + utxo.index + ', assetAmount = ' + assetAmount + ', score += 10000')
+      // console.log('for utxo ' + utxo.txid + ':' + utxo.index + ', assetAmount = ' + assetAmount + ', score += 10000')
       utxo.score += 10000
     } else {  // assetAmount > assetList[key].amount
-      console.log('for utxo ' + utxo.txid + ':' + utxo.index + ', assetAmount = ' + assetAmount + ', score += 1000')
+      // console.log('for utxo ' + utxo.txid + ':' + utxo.index + ', assetAmount = ' + assetAmount + ', score += 1000')
       utxo.score += 1000
     }
 

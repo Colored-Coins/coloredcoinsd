@@ -8,6 +8,7 @@ module.exports = (function () {
     var AWS = require("aws-sdk");
     var api = require('../../coluutils.js');
     var errors = require('cc-errors')
+    var _ = require('lodash')
 
     var creds = {};
     creds.AWSAKI = process.env.AWSAKI;
@@ -48,6 +49,26 @@ module.exports = (function () {
 
         swagger.addPost(sendAsset);
 
+  //endpoint to burn an asset
+         var burnAsset = {
+            'spec': {
+                "description": "burn an asset (reduce amount of an asset from total supply)",
+                "path": "/burnasset",
+                "method": "POST",
+                "parameters": [
+                        sw.bodyParam("burnAssetRequest", "Asset Burn Object", "burnAssetRequest")
+                ],
+                "type": "burnAssetResponse",
+                "errorResponses": [swagger.errors.notFound('asset')],
+                "nickname": "burnAsset"
+            },
+            'action': function burnAsset(req, res, next) {
+                console.log("burn asset action v3----------------------");
+                tryBurnAsset(req, res, next);
+            }
+        };
+
+        swagger.addPost(burnAsset);
 
          //endpoint to swap an asset with another or btc
          var swapAsset = {
@@ -110,7 +131,7 @@ module.exports = (function () {
                 return false
             })) { deferred.reject(new errors.ValidationError({explanation: "Missing parameter m, number for signatures required for multisig reedem"})) }
             else if(transferArr.some(function(transfer) {
-                if(!transfer.pubKeys && !transfer.address) {
+                if(!transfer.pubKeys && !transfer.address && !transfer.burn) {
                     return true
                 }
                 return false
@@ -173,6 +194,18 @@ module.exports = (function () {
         catch(e) {
             next(e)
         }
+    }
+
+    function tryBurnAsset (req, res, next) {
+        console.log('try burn asset v3')
+        req.body = req.body || {}
+        var to = req.body.transfer || []
+        var burn = req.body.burn || []
+        burn.forEach(function (burnItem) { burnItem.burn = true })
+        to.push.apply(to, burn)
+        delete req.body.transfer
+        req.body.to = to
+        trySendAsset(req, res, next)
     }
 
     return color;
