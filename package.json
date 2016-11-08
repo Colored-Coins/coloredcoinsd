@@ -18,7 +18,7 @@
     "cc-assetid-encoder": "^0.6.0",
     "cc-errors": "~0.0.7",
     "cc-request-id": "~0.0.3",
-    "cc-transaction": "git+https://github.com/Colored-Coins/Transaction.git#COLU-948_burn",
+    "cc-transaction": "^1.2.0",
     "cls-middleware": "^1.1.0",
     "continuation-local-storage": "^3.1.7",
     "cors": "^2.7.1",
