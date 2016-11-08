@@ -523,7 +523,7 @@ data.tx.outs.forEach( function (txOut) {
                 deferred.resolve(torretdata);
             }
             else if(data) {
-                console.log("download: rejecting with: " + response.statusCode + " " + data);
+                console.log("download: rejecting with: ", response.statusCode, data);
                 deferred.reject(new errors.DownloadMetadataError({status: response.statusCode, data: data}));
             }
             else {
@@ -1083,7 +1083,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
                // add array of colored ouput indexes
                 encoder.payments.forEach(function (payment) {
-                  if (payment.output) coloredOutputIndexes.push(payment.output)
+                  if (typeof payment.output !== 'undefined') coloredOutputIndexes.push(payment.output)
                 })
                  
             }
