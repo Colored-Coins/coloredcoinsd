@@ -523,7 +523,7 @@ data.tx.outs.forEach( function (txOut) {
                 deferred.resolve(torretdata);
             }
             else if(data) {
-                console.log("download: rejecting with: " + response.statusCode + " " + data);
+                console.log("download: rejecting with: ", response.statusCode, data);
                 deferred.reject(new errors.DownloadMetadataError({status: response.statusCode, data: data}));
             }
             else {
@@ -941,9 +941,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 if(!assetList[to.assetId]) 
                   assetList[to.assetId] = { amount: 0, addresses: [], done: false, change: 0, encodeAmount: 0, inputs: [] }
                 assetList[to.assetId].amount += to.amount
-                assetList[to.assetId].encodeAmount = assetList[to.assetId].amount;
+                if (to.burn) {
+                  assetList[to.assetId].addresses.push({ address: 'burn', amount: to.amount })
+                }
                 // generate a multisig adress, remeber to return the reedem scripts
-                if(!to.address && to.pubKeys && to.m) {
+                else if (!to.address && to.pubKeys && to.m) {
                     var multisig = generateMultisigAddress(to.pubKeys, to.m)
                     assetList[to.assetId].addresses.push({ address: multisig.address, amount: to.amount, reedemScript: multisig.reedemScript})
                 }
@@ -1006,6 +1008,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                   deferred.reject(new errors.NotEnoughAssetsError({asset: asset}))
                   return
                 }
+
                 console.log(currentAsset.addresses)
                 var uniAssets = _.uniqBy(currentAsset.addresses, function(item) { return item.address } )
                 console.log('uniAssets = ', uniAssets)
@@ -1017,7 +1020,11 @@ coluutils.requestParseTx = function requestParseTx(txid)
                     if(!input.amount) { return false }
                     if(addressAmountLeft - input.amount > 0 ) {
                         console.log('mapping to input ' + input.index + ' with amount ' + input.amount)
-                        encoder.addPayment(input.index, input.amount, (tx.outs ? tx.outs.length : 0))
+                        if (address.address === 'burn') {
+                          encoder.addBurn(input.index, input.amount)
+                        } else {
+                          encoder.addPayment(input.index, input.amount, (tx.outs ? tx.outs.length : 0))
+                        }
                         addressAmountLeft -= input.amount
                         console.log('left to map from next input ' + addressAmountLeft)
                         input.amount = 0
@@ -1025,18 +1032,24 @@ coluutils.requestParseTx = function requestParseTx(txid)
                     }
                     else {
                         console.log('mapping to input ' + input.index + ' with amount ' + addressAmountLeft)
-                        encoder.addPayment(input.index, addressAmountLeft, (tx.outs ? tx.outs.length : 0))
+                        if (address.address === 'burn') {
+                          encoder.addBurn(input.index, addressAmountLeft)
+                        } else {
+                          encoder.addPayment(input.index, addressAmountLeft, (tx.outs ? tx.outs.length : 0))
+                        }
                         input.amount -= addressAmountLeft
                         addressAmountLeft = 0
                         return true
                     }
                   })
                   console.log('putting output in transaction')
-                  tx.addOutput(address.address, config.mindustvalue);
+                  if (address.address !== 'burn') {
+                    tx.addOutput(address.address, config.mindustvalue);
+                  }
                   if(address.reedemScript) {
                      reedemScripts.push({index: tx.outs.length -1, reedemScript: address.reedemScript, address: address.address})
                   }
-                  
+
                   console.log(tx)
                   console.log('adding output ' + (tx.outs.length -1))
                 })
@@ -1070,7 +1083,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
                // add array of colored ouput indexes
                 encoder.payments.forEach(function (payment) {
-                  coloredOutputIndexes.push(payment.output)
+                  if (typeof payment.output !== 'undefined') coloredOutputIndexes.push(payment.output)
                 })
                  
             }
@@ -1330,7 +1343,6 @@ coluutils.requestParseTx = function requestParseTx(txid)
       }
       else
         console.log('no financeOutput was given')
-
 
        var hasEnoughEquity = utxos.some(function (utxo) {
             utxo.value = Math.round(utxo.value)

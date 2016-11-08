@@ -5,12 +5,12 @@ exports.models = {
         "properties": {
             "address": {
                 "type": "string",       
-                "address": "Address that will recive the asset"
+                "description": "Address to transfer the asset to"
             },
             "amount": {
                 "type": "number",
                 "format": "double",
-                "description": "Represendts and amount of an asset"
+                "description": "Amount of units of the asset to transfer"
             },
             "assetId": {
                 "type": "string",
@@ -21,12 +21,12 @@ exports.models = {
                 "items": {
                     "type": "string"
                 },
-                "description": "send to a multisig adress instead of an address"
+                "description": "Send to a multisig adress instead of an address"
             },
             "m": {
                 "type": "integer",
                 "format": "int32",
-                "description": "number of signatures needed to reedeem the multisig"
+                "description": "Number of signatures needed to reedeem the multisig"
             }
         }
     }
