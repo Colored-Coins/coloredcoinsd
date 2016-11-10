@@ -4,7 +4,7 @@
   "author": "",
   "description": "abstraction for color operations",
   "contributors": [],
-  "main": "./server.js",
+  "main": "./app.js",
   "keywords": [],
   "dependencies": {
     "aws-sdk": "^2.1.17",
@@ -52,7 +52,7 @@
     "url": "http://localhost:8080"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node app.js",
     "test": "mocha --recursive test --reporter-options=xunit.xml",
     "ci-full": "istanbul cover _mocha -- -R xunit-file",
     "test-windows": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha/ -- -R xunit-file && istanbul report html"
