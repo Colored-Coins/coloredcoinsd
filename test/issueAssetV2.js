@@ -1,8 +1,10 @@
 var assert = require('assert')
 var Client = require('node-rest-client').Client
-var should = require('should'); 
-var assert = require('assert');
-var request = require('supertest');
+var should = require('should')
+var assert = require('assert')
+var request = require('supertest')
+var express = require('express')
+var server = require('../server')
 
 
 /*
@@ -65,9 +67,17 @@ var request = require('supertest');
 
 
 describe ('Api tests', function () {
+
+  var expressApp
+  before(function(done) {
+    expressApp = express()
+    server.initPolyfills()
+    server.init(expressApp)
+    done()
+  })
+  
   describe ('issueAsset', function () {
-    this.timeout(10000);
-    it('should create an inssue asset trasantion', function (done) {
+    it('should create an issue asset transaction', function (done) {
     	var issuedata = {
 			  "issueAddress": "mxNTyQ3WdFMQE7SGVpSQGXnSDevGMLq7dg",
 			  "name": "test asset d2",
@@ -97,7 +107,7 @@ describe ('Api tests', function () {
 			    "amount": "100"
 			  }
 			}
-	    request('http://localhost:8080')
+	    request(expressApp)
 		.post('/v2/issue')
 		.send(issuedata)
 	    // end handles the response
