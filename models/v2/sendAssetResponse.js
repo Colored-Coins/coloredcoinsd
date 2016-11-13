@@ -1,11 +1,25 @@
 exports.models = {
     "sendAssetResponse": {
         "id": "sendAssetResponse",
-        "required": ["txHex"],
+        "required": ["txHex", "coloredOutputIndexes", "multisigOutputs"],
         "properties": {
-            "txHash": {
+            "txHex": {
                 "type": "string",       
                 "address": "Hex of the transaction"
+            },
+            "coloredOutputIndexes": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "description": "indexes of outputs assets were explicitly transferred to"
+            },
+            "multisigOutputs": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "description": "indexes of multisig outputs"
             }
         }
     }

@@ -2,7 +2,7 @@
   "name": "colordcoinsd",
   "version": "0.0.1",
   "author": "",
-  "description": "abstraction for color operations",
+  "description": "Abstraction for Colored-Coins operations",
   "contributors": [],
   "main": "./app.js",
   "keywords": [],
