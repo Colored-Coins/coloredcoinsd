@@ -898,7 +898,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     //TODO: break this into a generic fee mechanisem where fee and and total inputs amount are diffrent
     // inputs amount can be taked from the sent asset as well, fee variable is missleading
     function comupteCost(withfee, metadata ){
-       fee = withfee ? config.minfee : 0;
+       fee = withfee ? (metadata.fee || config.minfee) : 0;
 
         if(metadata.to && metadata.to.length)
         {
@@ -1105,7 +1105,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
               satoshiCost = getInputAmountNeededForTx(tx, metadata.fee)
               if(!tryAddingInputsForFee(tx, utxos, totalInputs, metadata, satoshiCost)) {
                 deferred.reject(new errors.NotEnoughFundsError({
-                  type: 'issuance',
+                  type: 'transfer',
                   fee: metadata.fee,
                   totalCost: satoshiCost,
                   missing: config.mindustvalue - lastOutputValue
@@ -1211,7 +1211,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             var change = new bn(0)
             var hasEnoughEquity = utxos.some(function (utxo) {
               utxo.value = Math.round(utxo.value)
-              if(!utxo.assets || utxo.assets.length == 0) {
+              if (!isInputInTx(tx, utxo.txid, utxo.index) && !(utxo.assets && utxo.assets.length)) {
                   console.log('current amount ' + utxo.value + " needed " + cost)
                   tx.addInput(utxo.txid, utxo.index)
                   if(tx.ins.length == 1) { //encode asset 
@@ -1346,7 +1346,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
        var hasEnoughEquity = utxos.some(function (utxo) {
             utxo.value = Math.round(utxo.value)
-              if(utxo.assets.length == 0) {
+              if (!isInputInTx(tx, utxo.txid, utxo.index) && !(utxo.assets && utxo.assets.length)) {
                   console.log('current amount ' + utxo.value + " needed " + missing)
                   tx.addInput(utxo.txid, utxo.index)
                   inputsValue.amount += utxo.value
@@ -1360,15 +1360,15 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
             })
 
-       console.log("hasEnoughEquity: " + hasEnoughEquity)
+      console.log("hasEnoughEquity: " + hasEnoughEquity)
 
       return hasEnoughEquity;
     }
 
-    function isInputInTx(txid, index) {
+    function isInputInTx (tx, txid, index) {
       return tx.ins.some(function (input) {
         var id = bitcoinjs.bufferutils.reverse(input.hash)
-        return (id.toString('hex') === txid && input.index == index) 
+        return (id.toString('hex') === txid && input.index === index)
       })
     }
 
