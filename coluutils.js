@@ -1321,7 +1321,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
       var financeValue = new bn(0)
       var currentAmount = new bn(0)
       if(metadata.financeOutput && metadata.financeOutputTxid) {
-        if(isInputInTx(metadata.financeOutputTxid, metadata.financeOutput.n))
+        if(isInputInTx(tx, metadata.financeOutputTxid, metadata.financeOutput.n))
           return false
         financeValue = new bn(metadata.financeOutput.value)
         console.log('finance sent through api with value ' + financeValue.toNumber())
