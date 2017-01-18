@@ -69,19 +69,19 @@ App.init = function(app) {
   }
 
   // Adds optional express logging to winston logger
-  expressWinston.requestWhitelist.push('log_ip')
-  expressWinston.requestWhitelist.push('log_url')
+  expressWinston.requestWhitelist.push('ip')
+  expressWinston.requestWhitelist.push('body')
   app.use(expressWinston.logger({
     winstonInstance: logger({logentries_api_key: process.env.LETOKEN}),
     meta: true,
     colorStatus: true
   }))
   app.use(function (req, res, next) {
-    req.log_ip = req.headers['x-forwarded-for'] || (req.connection && req.connection.remoteAddress)
-    req.log_ip = req.log_ip || (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.socket && req.connection.socket.remoteAddress)
+    var ip = req.headers['x-forwarded-for'] || (req.connection && req.connection.remoteAddress)
+    ip = ip || (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.socket && req.connection.socket.remoteAddress)
     // for log-entries to parse Key-Value-Pairs ("/" in value is causing problems)
-    req.log_ip = "'" + req.log_ip + "'"
-    req.log_url = "'" + req.url + "'"
+    req.body.log_ip = "'" + ip + "'"
+    req.body.log_url = "'" + req.url + "'"
     next()
   })
   
