@@ -1,5 +1,6 @@
 var winston = require('winston')
 var fs = require('fs')
+var path = require('path')
 
 var defaultTransports = [
   new (winston.transports.Console)({
@@ -9,7 +10,7 @@ var defaultTransports = [
 ]
 
 module.exports = function (settings) {
-  var dir = settings.log_dir || '../log'
+  var dir = settings.log_dir || path.join(__dirname + '/../log')
   var logentries_api_key = settings.logentries_api_key
   var cli = settings.cli
   var transports = settings.transports || defaultTransports
