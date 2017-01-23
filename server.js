@@ -3,14 +3,12 @@ var config = require('./config')
 var bodyParser = require('body-parser')
 var cors = require('cors')
 var piwik = require('./piwik')
-var morgan = require('morgan')
+var logger = require('./modules/logger')
 var requestId = require('cc-request-id')
 var errors = require('cc-errors')
 var session = require('continuation-local-storage').createNamespace(config.serverName)
 var clsify = require('cls-middleware')
-
-var fs = require('fs')
-var log4js = require('log4js')
+var expressWinston = require('express-winston')
 
 var controllers = require('./controllers')
 var _ = require('lodash')
@@ -36,8 +34,6 @@ App.initPolyfills = function() {
 
 
 App.init = function(app) {
-  app.use(morgan('combined'))
-  
   var whitelist = ['coloredcoins.org', 'colu.co'];
   var corsOptions = {
     origin: function (origin, callback){
@@ -71,6 +67,22 @@ App.init = function(app) {
   if (config.secret) {
     app.use(requestId({secret: config.secret, namespace: config.serverName}))
   }
+
+  // Adds optional express logging to winston logger
+  expressWinston.requestWhitelist = _.concat(expressWinston.requestWhitelist, ['body', 'log_ip', 'log_url'])
+  app.use(expressWinston.logger({
+    winstonInstance: logger({logentries_api_key: process.env.LETOKEN}),
+    meta: true,
+    colorStatus: true
+  }))
+  app.use(function (req, res, next) {
+    var ip = req.headers['x-forwarded-for'] || (req.connection && req.connection.remoteAddress)
+    ip = ip || (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.socket && req.connection.socket.remoteAddress)
+    // for log-entries to parse Key-Value-Pairs ("/" in value is causing problems)
+    req.log_ip = "'" + ip + "'"
+    req.log_url = "'" + req.url + "'"
+    next()
+  })
   
   if (config.piwik.enabled) {
     console.log('Piwik is ENABLED, its configuration is: ' + JSON.stringify(config.piwik))
