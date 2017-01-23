@@ -9,7 +9,6 @@ var errors = require('cc-errors')
 var session = require('continuation-local-storage').createNamespace(config.serverName)
 var clsify = require('cls-middleware')
 var expressWinston = require('express-winston')
-var geoip = require('geoip-lite')
 
 var controllers = require('./controllers')
 var _ = require('lodash')
@@ -70,7 +69,7 @@ App.init = function(app) {
   }
 
   // Adds optional express logging to winston logger
-  expressWinston.requestWhitelist = _.concat(expressWinston.requestWhitelist, ['body', 'ip', 'country', 'log_ip', 'log_url'])
+  expressWinston.requestWhitelist = _.concat(expressWinston.requestWhitelist, ['body', 'log_ip', 'log_url'])
   app.use(expressWinston.logger({
     winstonInstance: logger({logentries_api_key: process.env.LETOKEN}),
     meta: true,
@@ -82,8 +81,6 @@ App.init = function(app) {
     // for log-entries to parse Key-Value-Pairs ("/" in value is causing problems)
     req.log_ip = "'" + ip + "'"
     req.log_url = "'" + req.url + "'"
-    var geo = geoip.lookup(ip)
-    req.country = (geo && geo.country) || 'unknown'
     next()
   })
   

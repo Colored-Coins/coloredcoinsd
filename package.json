@@ -24,7 +24,6 @@
     "cors": "^2.7.1",
     "express": "4.10.4",
     "express-winston": "^2.1.0",
-    "geoip-lite": "^1.1.8",
     "lodash": ">=2.4.1",
     "node-rest-client": ">=1.0.3",
     "node-rsa": "^0.2.24",
