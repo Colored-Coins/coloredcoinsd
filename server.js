@@ -9,6 +9,7 @@ var errors = require('cc-errors')
 var session = require('continuation-local-storage').createNamespace(config.serverName)
 var clsify = require('cls-middleware')
 var expressWinston = require('express-winston')
+var url = require('url')
 
 var controllers = require('./controllers')
 var _ = require('lodash')
@@ -78,12 +79,19 @@ App.init = function(app) {
   app.use(function (req, res, next) {
     var ip = req.headers['x-forwarded-for'] || (req.connection && req.connection.remoteAddress)
     ip = ip || (req.socket && req.socket.remoteAddress) || (req.connection && req.connection.socket && req.connection.socket.remoteAddress)
+    var parsed_url = url.parse(req.url) || {}
+    var log_url = (parsed_url.pathname && parsed_url.pathname.toLowerCase()) || ''
+    log_url = log_url.substring(0, getNthOccurrenceIndex(log_url, '/', 3))
     // for log-entries to parse Key-Value-Pairs ("/" in value is causing problems)
     req.log_ip = "'" + ip + "'"
-    req.log_url = "'" + req.url + "'"
+    req.log_url = "'" + log_url + "'"
     next()
   })
-  
+
+  function getNthOccurrenceIndex(string, subString, index) {
+    return string.split(subString, index).join(subString).length;
+  }
+
   if (config.piwik.enabled) {
     console.log('Piwik is ENABLED, its configuration is: ' + JSON.stringify(config.piwik))
     app.use(piwik(config.piwik))
