@@ -100,9 +100,7 @@ App.init = function(app) {
   }
   
   controllers.register(app)
-  app.get('/error', function (req, res, next) {
-    next(new errors.InvalidTxidError({explanation: 'this is some error'}))
-  })
+  app.get('/is_running', function (req, res, next) { res.send('OK') })
   
   var docs_handler = express.static(__dirname + '/node_modules/swagger-node-express/swagger-ui');
   app.get(/^\/docs(\/.*)?$/, function (req, res, next) {
