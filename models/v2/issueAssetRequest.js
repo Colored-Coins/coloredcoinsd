@@ -10,12 +10,12 @@ exports.models = {
             "amount": {
                "type": "integer",
                 "format": "int32",
-                "description": "Amonut of asset to issue",
+                "description": "Amonut of asset to issue"
             },
             "fee": {
                 "type": "integer",
                 "format": "int32",
-                "description": "Minnig fee for issueing the asset",
+                "description": "Fee for the transaction in satoshi",
                 "minimum": "1000",
                 "maximum": "1000000000"
             },

@@ -768,7 +768,7 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("getTransaction:(200)");
-                deferred.resolve([data]);
+                deferred.resolve(data);
             }
             else if(data) {
                 console.log("getTransaction: rejecting with:", response.statusCode, data);

@@ -185,9 +185,8 @@ module.exports = (function () {
         console.log("tryBroadcastAsset")
 
         api.broadcastTx(req.body.txHex).
-        then(function(txid){
-            api.requestParseTx(txid);
-            res.status(200).send({txid: txid});
+        then(function (result) {
+            res.status(200).send(result);
         }).
         catch(next).done();
 
