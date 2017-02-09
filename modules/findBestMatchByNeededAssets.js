@@ -66,7 +66,6 @@ var findBestMatchByNeededAssets = function (utxos, assetList, key, tx, inputvalu
           console.log('inputIndexInAsset = ' + inputIndexInAsset)
           if (assetList[asset.assetId].amount <= asset.amount) {
             var totalamount = asset.amount
-            assetList[asset.assetId].inputs.forEach(function (input) { totalamount += input.amount })
             if (aggregationPolicy === 'aggregatable' && lastAssetId === asset.assetId && assetList[asset.assetId].inputs.length) {
               console.log('#1 assetList[' + asset.assetId + '].inputs[' + (inputIndexInAsset - 1) + '].amount += ' + assetList[asset.assetId].amount)
               assetList[asset.assetId].inputs[inputIndexInAsset - 1].amount += assetList[asset.assetId].amount
