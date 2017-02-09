@@ -114,6 +114,7 @@
      * @apiParam {Boolean} reissueable Decides if the asset can ever be reissued
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the previous output script to make siging simpler
+     * @apiParam {Boolean} [flags.splitChange] Split non-colored and colored change into two different outputs
      * @apiParam {Object[]} [transfer] Array of transfer type objects (transfers amount of the issued asset to specific addresses)
      * @apiParam {String} [transfer.address] Address to transfer assets to 
      * @apiParam {Number} transfer.amount Amount of Asset to transfer
@@ -192,6 +193,7 @@
      * @apiParam {String} [to.m] Number of signatures required in order to reedem the multisig 
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the previous output script to make siging simpler
+     * @apiParam {Boolean} [flags.splitChange] Split non-colored and colored change into two different outputs
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   
      * @apiParam {String} [metadata.assetId] Asset Id    
      * @apiParam {String} [metadata.assetName] Asset Name   
@@ -326,6 +328,7 @@
      * @apiParam {String} [to.m] Number of signatures required in order to reedem the multisig 
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the previous output script to make siging simpler
+     * @apiParam {Boolean} [flags.splitChange] Split non-colored and colored change into two different outputs
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   
      * @apiParam {String} [metadata.assetId] Asset Id    
      * @apiParam {String} [metadata.assetName] Asset Name   
@@ -405,6 +408,7 @@
      * @apiParam {String} burn.assetId Asset ID of Asset to burn
      * @apiParam {Object} [flags] A flag type object
      * @apiParam {Boolean} [flags.injectPreviousOutput] If true the input will contain the previous output script to make siging simpler
+     * @apiParam {Boolean} [flags.splitChange] Split non-colored and colored change into two different outputs
      * @apiParam {Object} [metadata] Metadata of the specific utxo from the transaction   
      * @apiParam {String} [metadata.assetId] Asset Id    
      * @apiParam {String} [metadata.assetName] Asset Name   

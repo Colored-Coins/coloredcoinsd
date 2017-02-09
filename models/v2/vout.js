@@ -4,8 +4,8 @@ exports.models = {
         "required": ["value", "n", "scriptPubKey"],
         "properties": {
             "value": {
-                "type": "number",
-                "format": "double",
+                "type": "integer",
+                "format": "int32",
                 "description": "value in satoshi"
             },
             "n": {

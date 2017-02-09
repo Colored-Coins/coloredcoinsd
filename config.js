@@ -14,7 +14,7 @@ var config = {
     timeout: 30000
   },
   blockexplorer: {
-    url: 'http://testnet.elasticbeanstalk.com'
+    url: 'https://testnet.explorer.coloredcoins.org'
   },
   torrentServer: {
     url: 'http://dev.metadata.coloredcoins.org'
@@ -33,7 +33,7 @@ var config = {
   mindustvalue: 600,
   mindustvaluemultisig: 700,
   feePerKb: 1000,
-  checkFinanaceValidty: true
+  checkFinanceValidity: true
 }
 
 

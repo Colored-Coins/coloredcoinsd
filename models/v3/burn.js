@@ -4,8 +4,8 @@ exports.models = {
         "required": [ "amount", "assetId"],
         "properties": {
             "amount": {
-                "type": "number",
-                "format": "double",
+                "type": "integer",
+                "format": "int32",
                 "description": "Amount of units of the asset to burn"
             },
             "assetId": {

@@ -8,8 +8,7 @@ exports.models = {
                 "description": "Address to transfer the asset to"
             },
             "amount": {
-                "type": "number",
-                "format": "double",
+                "type": "integer",
                 "description": "Amount of units of the asset to transfer"
             },
             "assetId": {
@@ -21,7 +20,7 @@ exports.models = {
                 "items": {
                     "type": "string"
                 },
-                "description": "Send to a multisig adress instead of an address"
+                "description": "Send to a multisig address instead of an address"
             },
             "m": {
                 "type": "integer",

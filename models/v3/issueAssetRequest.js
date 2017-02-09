@@ -65,10 +65,6 @@ exports.models = {
              "metadata": {
                 "type": "metadata",
                 "description": "Section used only if the transaction is a reissueance trasaction"
-            },
-            "splitChange": {
-                "type": "boolean",
-                "description": "split bitcoin and colored change into two different outputs"
             }
         }
     }

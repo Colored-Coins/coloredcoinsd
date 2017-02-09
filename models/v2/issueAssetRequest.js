@@ -10,18 +10,18 @@ exports.models = {
             "amount": {
                "type": "integer",
                 "format": "int32",
-                "description": "Amonut of asset to issue",
+                "description": "Amount of the asset to issue"
             },
             "fee": {
                 "type": "integer",
                 "format": "int32",
-                "description": "Minnig fee for issueing the asset",
+                "description": "Mining fee for the transaction, in satoshi",
                 "minimum": "1000",
                 "maximum": "1000000000"
             },
             "pubKeyReturnMultisigDust": {
                 "type": "string",
-                "description": "Encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
+                "description": "Encoded public key if you want to receive the multisig dust if multisig is needed for the metadata"
             },
             "financeOutput": {
                 "type": "vout",
@@ -29,10 +29,10 @@ exports.models = {
             },
             "financeOutputTxid": {
                 "type": "string",
-                "description": "txid containing the output used for finanace"
+                "description": "txid containing the output used for finance"
             },
             "reissueable":{
-                 "type": "boolean",
+                "type": "boolean",
                 "description": "Can the asset be reissued, in simple cases there is no need for mint tokens, the same key can resissue the asset"
             },
             "aggregationPolicy": {
@@ -49,14 +49,14 @@ exports.models = {
                 "format": "int32",
                 "minimum": "0",
                 "maximum": "8",
-                "description": "Settings that need to be met in order for this asset to be considerd valid"
+                "description": "How divisible is the asset (the smallest transferable amount of an asset is 10^(-divisibility))"
             },
             "transfer": {
                 "type": "array",
                 "items": {
                     "$ref": "transfer"
                 },
-                "description": "Where to transfer assets form the isseance"
+                "description": "Where to transfer assets from the issuance"
             },
             "rules": {
                 "type": "rules",
@@ -64,7 +64,7 @@ exports.models = {
             },
              "metadata": {
                 "type": "metadata",
-                "description": "Section used only if the transaction is a reissueance trasaction"
+                "description": "Additional data to be associated with the issuance transaction"
             }
         }
     }

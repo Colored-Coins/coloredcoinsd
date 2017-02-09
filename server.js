@@ -14,25 +14,46 @@ var url = require('url')
 var controllers = require('./controllers')
 var _ = require('lodash')
 
-
 var App = module.exports = {}
-
 
 // Add some string methods, remove it when we'll move to ECMA6 (Node.JS >4.x)
 App.initPolyfills = function() {
-  if (!String.prototype.endsWith) {
+  if (typeof String.prototype.endsWith !== 'function') {
     String.prototype.endsWith = function (suffix) {
       return this.indexOf(suffix, this.length - suffix.length) !== -1
     }
   }
-  if (!String.prototype.startsWith) {
+  if (typeof String.prototype.startsWith !== 'function') {
     String.prototype.startsWith = function (searchString, position) {
       position = position || 0
       return this.substr(position, searchString.length) === searchString
     }
   }
-}
+  if (typeof Object.assign !== 'function') {
+    Object.assign = function (target, varArgs) { // .length of function is 2
+      'use strict'
+      if (target == null) { // TypeError if undefined or null
+        throw new TypeError('Cannot convert undefined or null to object')
+      }
 
+      var to = Object(target)
+
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index]
+
+        if (nextSource != null) { // Skip over if undefined or null
+          for (var nextKey in nextSource) {
+            // Avoid bugs when hasOwnProperty is shadowed
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey]
+            }
+          }
+        }
+      }
+      return to
+    }
+  }
+}
 
 App.init = function(app) {
   var whitelist = ['coloredcoins.org', 'colu.co'];

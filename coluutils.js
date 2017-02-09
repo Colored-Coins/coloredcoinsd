@@ -84,7 +84,7 @@ module.exports = (function () {
 
                 console.log("checking unspent "  + unspent.txid + ":" + unspent.vout)
                 var keep = true;
-                if(config.checkFinanaceValidty) {
+                if (config.checkFinanceValidity) {
                   transactions[i].vout.some(function(vout, x){
                     if(vout.scriptPubKey && 
                     vout.scriptPubKey.asm && 
@@ -355,7 +355,7 @@ data.tx.outs.forEach( function (txOut) {
           missing: config.mindustvalue - lastOutputValue
         })
       }
-      if (args.splitChange && lastOutputValue >= 2 * config.mindustvalue && coloredAmount > 0) {
+      if (args.flags && args.flags.splitChange && lastOutputValue >= 2 * config.mindustvalue && coloredAmount > 0) {
         var bitcoinChange = lastOutputValue - config.mindustvalue
         lastOutputValue - config.mindustvalue
         console.log('adding bitcoin change output with: ' + bitcoinChange)  
@@ -780,7 +780,7 @@ coluutils.broadcastTx = function broadcastTx(txhex) {
             console.log(data);
             if (response.statusCode == 200) {
                 console.log("getTransaction:(200)");
-                deferred.resolve([data]);
+                deferred.resolve(data);
             }
             else if(data) {
                 console.log("getTransaction: rejecting with:", response.statusCode, data);
@@ -956,7 +956,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 if (to.burn) {
                   assetList[to.assetId].addresses.push({ address: 'burn', amount: to.amount })
                 }
-                // generate a multisig adress, remeber to return the reedem scripts
+                // generate a multisig address, remember to return the redeem scripts
                 else if (!to.address && to.pubKeys && to.m) {
                     var multisig = generateMultisigAddress(to.pubKeys, to.m)
                     assetList[to.assetId].addresses.push({ address: multisig.address, amount: to.amount, reedemScript: multisig.reedemScript})
@@ -1115,7 +1115,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             var coloredChange = _.keys(assetList).some(function (assetId) {
               return assetList[assetId].change > 0
             })
-            var numOfChanges = metadata.splitChange && coloredChange && lastOutputValue >= 2 * config.mindustvalue ? 2 : 1
+            var numOfChanges = metadata.flags && metadata.flags.splitChange && coloredChange && lastOutputValue >= 2 * config.mindustvalue ? 2 : 1
 
             if(lastOutputValue < numOfChanges * config.mindustvalue) {
               console.log('trying to add additionl inputs to cover transaction')

@@ -5,11 +5,11 @@ exports.models = {
         "properties": {
             "fee": {
                 "type": "integer",       
-                "description": "Fees for transaction in satoshi"
+                "description": "Mining fee for the transaction, in satoshi"
             },
             "pubKeyReturnMultisigDust": {
                 "type": "string",
-                "description": "encoded public key if you want to recive the multisig dust if multisig is needed for the metadata"
+                "description": "Encoded public key if you want to receive the multisig dust if multisig is needed for the metadata"
             },
             "financeOutput": {
                 "type": "vout",
@@ -17,7 +17,7 @@ exports.models = {
             },
             "financeOutputTxid": {
                 "type": "string",
-                "description": "txid containing the output used for finanace"
+                "description": "txid containing the output used for finance"
             },
             "trades": {
                 "type": "array",
@@ -29,10 +29,6 @@ exports.models = {
             "flags" : {
                 "type": "flags",
                 "description": "Flags for this transaction"
-            },
-            "splitChange": {
-                "type": "boolean",
-                "description": "split bitcoin and colored change into two different outputs"
             }
         }
     }

@@ -5,14 +5,14 @@ exports.models = {
         "properties": {
             "address": {
               "type": "string",
-                "description": "Name of the category"
+              "description": "Name of the category"
             },
             "assetId": {
                 "type": "string",
                 "description": "Name of the category"
             },
             "value": {
-                "type": "integer",
+                "type": "number",
                 "format": "int32",
                 "description": "Name of the category"
             }
