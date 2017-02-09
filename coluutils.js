@@ -267,6 +267,7 @@ data.tx.outs.forEach( function (txOut) {
       var encoder = cc.newTransaction(0x4343, CC_TX_VERSION)
       var reedemScripts = []
       var coloredOutputIndexes = []
+      var coloredAmount = metadata.amount
       encoder.setLockStatus(!metadata.reissueable)
       encoder.setAmount(metadata.amount, metadata.divisibility)
       console.log("amount and div " + metadata.amount+" "+ metadata.divisibility)
@@ -287,6 +288,7 @@ data.tx.outs.forEach( function (txOut) {
         metadata.transfer.forEach(function(transferobj, i){
           console.log("payment " + transferobj.amount + " " + args.tx.outs.length )
           encoder.addPayment(0, transferobj.amount, args.tx.outs.length)
+          coloredAmount-=transferobj.amount
           // check multisig
           if(transferobj.pubKeys && transferobj.m) {
              var multisig = generateMultisigAddress(transferobj.pubKeys, transferobj.m)
@@ -296,6 +298,10 @@ data.tx.outs.forEach( function (txOut) {
           else
             args.tx.addOutput(transferobj.address, config.mindustvalue)
         })
+      }
+
+      if (coloredAmount < 0) {
+        throw new errors.CCTransactionConstructionError({explanation: 'transferring more then issued'})
       }
 
       //add op_return
@@ -348,6 +354,12 @@ data.tx.outs.forEach( function (txOut) {
           totalCost: totalCost,
           missing: config.mindustvalue - lastOutputValue
         })
+      }
+      if (args.splitChange && lastOutputValue >= 2 * config.mindustvalue && coloredAmount > 0) {
+        var bitcoinChange = lastOutputValue - config.mindustvalue
+        lastOutputValue - config.mindustvalue
+        console.log('adding bitcoin change output with: ' + bitcoinChange)  
+        args.tx.addOutput(metadata.issueAddress , bitcoinChange);  
       }
       console.log('adding change output with: ' + lastOutputValue)
       console.log('total inputs: ' + args.totalInputs.amount)
@@ -918,7 +930,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     function addInputsForSendTransaction(tx, metadata) {
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
-        var totalInputs = { amount: 0 }
+        var totalInputs = { amount: 0}
         var reedemScripts = []
         var coloredOutputIndexes = []
 
@@ -1100,9 +1112,14 @@ coluutils.requestParseTx = function requestParseTx(txid)
 
             tx.addOutput(ret, 0);
             var lastOutputValue = getChangeAmount(tx, metadata.fee, totalInputs)
-            if(lastOutputValue < config.mindustvalue) {
+            var coloredChange = _.keys(assetList).some(function (assetId) {
+              return assetList[assetId].change > 0
+            })
+            var numOfChanges = metadata.splitChange && coloredChange && lastOutputValue >= 2 * config.mindustvalue ? 2 : 1
+
+            if(lastOutputValue < numOfChanges * config.mindustvalue) {
               console.log('trying to add additionl inputs to cover transaction')
-              satoshiCost = getInputAmountNeededForTx(tx, metadata.fee)
+              satoshiCost = getInputAmountNeededForTx(tx, metadata.fee) + numOfChanges * config.mindustvalue
               if(!tryAddingInputsForFee(tx, utxos, totalInputs, metadata, satoshiCost)) {
                 deferred.reject(new errors.NotEnoughFundsError({
                   type: 'transfer',
@@ -1118,6 +1135,10 @@ coluutils.requestParseTx = function requestParseTx(txid)
             // TODO: make sure we have a from here, even though we try to use first address found in the utxo we want to send
             // in case we didnt just use an address, there still might not be an address perhaps we should generate a keypair
             // here and return them as well, also we might have mutiple from addresses
+            if (numOfChanges === 2) {
+              tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue - config.mindustvalue); 
+              lastOutputValue = config.mindustvalue 
+            }
             tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue);
             console.log('success')
             deferred.resolve({tx: tx, metadata: metadata, multisigOutputs: reedemScripts, coloredOutputIndexes: _.uniqBy(coloredOutputIndexes) });

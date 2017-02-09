@@ -54,6 +54,10 @@ exports.models = {
             "metadata": {
                 "type": "metadata",
                 "description": "Metadata to be attached to the transaction"
+            },
+            "splitChange": {
+                "type": "boolean",
+                "description": "split bitcoin and colored change into two different outputs"
             }
         }
     }

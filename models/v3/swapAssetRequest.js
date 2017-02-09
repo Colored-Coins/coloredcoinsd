@@ -29,6 +29,10 @@ exports.models = {
             "flags" : {
                 "type": "flags",
                 "description": "Flags for this transaction"
+            },
+            "splitChange": {
+                "type": "boolean",
+                "description": "split bitcoin and colored change into two different outputs"
             }
         }
     }

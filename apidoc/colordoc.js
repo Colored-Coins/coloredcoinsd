@@ -153,6 +153,7 @@
      * @apiParam {Object[]} [rules.holders] Array of holder type objects, they specify in what addresses the asset is considered valid   
      * @apiParam {String} rules.holders.adress Address where the asset is considered valid   
      * @apiParam {Boolean} rules.holders.locked Failed to specify if following transaction of the asset can add to this rule type
+     * @apiParam {Boolean} splitChange split bitcoin and colored change into two different outputs
      * @apiSuccess {String} txHex Unsigend transaction hex for the issuance
      * @apiSuccess {String} assetId Asset id for the asset generated
      * @apiVersion 0.2.0
@@ -225,6 +226,7 @@
      * @apiParam {Object[]} [rules.holders] Array of holder type objects, they specify in what addresses the asset is considered valid   
      * @apiParam {String} rules.holders.adress Address where the asset is considered valid   
      * @apiParam {Boolean} rules.holders.locked Failed to specify if following transaction of the asset can add to this rule type
+     * @apiParam {Boolean} splitChange split bitcoin and colored change into two different outputs
      * @apiSuccess {String} txHex Unsigned hex of the send transaction.
      * @apiVersion 0.2.0
      * 
@@ -358,7 +360,7 @@
      * @apiParam {Object[]} [rules.holders] Array of holder type objects, they specify in what addresses the asset is considered valid   
      * @apiParam {String} rules.holders.adress Address where the asset is considered valid   
      * @apiParam {Boolean} rules.holders.locked Failed to specify if following transaction of the asset can add to this rule type
-     *
+     * @apiParam {Boolean} splitChange split bitcoin and colored change into two different outputs
      * @apiSuccess {String} txHex Unsigned hex of the send transaction.
      * @apiSuccess {Number[]} coloredOutputIndexes Array of indexes of outputs assets were explicitly transferred to.
      * @apiSuccess {Number[]} multisigOutputs Array of indexes of multisig outputs.
@@ -437,7 +439,7 @@
      * @apiParam {Object[]} [rules.holders] Array of holder type objects, they specify in what addresses the asset is considered valid   
      * @apiParam {String} rules.holders.adress Address where the asset is considered valid   
      * @apiParam {Boolean} rules.holders.locked Failed to specify if following transaction of the asset can add to this rule type
-     *
+     * @apiParam {Boolean} splitChange split bitcoin and colored change into two different outputs
      * @apiSuccess {String} txHex Unsigned hex of the burn transaction.
      * @apiSuccess {Number[]} coloredOutputIndexes Array of indexes of outputs assets were explicitly transferred to.
      * @apiSuccess {Number[]} multisigOutputs Array of indexes of multisig outputs.
