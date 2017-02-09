@@ -8,8 +8,7 @@ exports.models = {
                 "description": "Address to transfer the asset to"
             },
             "amount": {
-                "type": "number",
-                "format": "integer",
+                "type": "integer",
                 "description": "Amount of units of the asset to transfer"
             },
             "assetId": {

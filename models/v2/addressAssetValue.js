@@ -12,7 +12,7 @@ exports.models = {
                 "description": "Name of the category"
             },
             "value": {
-                "type": "integer",
+                "type": "number",
                 "format": "int32",
                 "description": "Name of the category"
             }
