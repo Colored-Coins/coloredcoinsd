@@ -288,7 +288,7 @@ data.tx.outs.forEach( function (txOut) {
         metadata.transfer.forEach(function(transferobj, i){
           console.log("payment " + transferobj.amount + " " + args.tx.outs.length )
           encoder.addPayment(0, transferobj.amount, args.tx.outs.length)
-          coloredAmount-=transferobj.amount
+          coloredAmount -= transferobj.amount
           // check multisig
           if(transferobj.pubKeys && transferobj.m) {
              var multisig = generateMultisigAddress(transferobj.pubKeys, transferobj.m)
@@ -301,7 +301,7 @@ data.tx.outs.forEach( function (txOut) {
       }
 
       if (coloredAmount < 0) {
-        throw new errors.CCTransactionConstructionError({explanation: 'transferring more then issued'})
+        throw new errors.CCTransactionConstructionError({explanation: 'transferring more than issued'})
       }
 
       //add op_return
@@ -930,7 +930,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
     function addInputsForSendTransaction(tx, metadata) {
         var deferred = Q.defer()
         var satoshiCost = comupteCost(true, metadata)
-        var totalInputs = { amount: 0}
+        var totalInputs = { amount: 0 }
         var reedemScripts = []
         var coloredOutputIndexes = []
 
@@ -1115,7 +1115,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
             var coloredChange = _.keys(assetList).some(function (assetId) {
               return assetList[assetId].change > 0
             })
-            var numOfChanges = metadata.flags && metadata.flags.splitChange && coloredChange && lastOutputValue >= 2 * config.mindustvalue ? 2 : 1
+            var numOfChanges = (metadata.flags && metadata.flags.splitChange && coloredChange && lastOutputValue >= 2 * config.mindustvalue) ? 2 : 1
 
             if(lastOutputValue < numOfChanges * config.mindustvalue) {
               console.log('trying to add additionl inputs to cover transaction')
