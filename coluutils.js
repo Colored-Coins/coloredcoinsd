@@ -355,21 +355,19 @@ data.tx.outs.forEach( function (txOut) {
           missing: config.mindustvalue - lastOutputValue
         })
       }
-      if (args.flags && args.flags.splitChange && lastOutputValue >= 2 * config.mindustvalue && coloredAmount > 0) {
+      if (metadata.flags && metadata.flags.splitChange && lastOutputValue >= 2 * config.mindustvalue && coloredAmount > 0) {
         var bitcoinChange = lastOutputValue - config.mindustvalue
-        lastOutputValue - config.mindustvalue
-        console.log('adding bitcoin change output with: ' + bitcoinChange)  
-        args.tx.addOutput(metadata.issueAddress , bitcoinChange);  
+        lastOutputValue = config.mindustvalue
+        console.log('adding bitcoin change output with: ' + bitcoinChange)
+        args.tx.addOutput(metadata.issueAddress, bitcoinChange) 
       }
       console.log('adding change output with: ' + lastOutputValue)
       console.log('total inputs: ' + args.totalInputs.amount)
       console.log('total fee: ' + metadata.fee)
       console.log('total output without fee: ' + allOutputValues)
-      args.tx.addOutput(metadata.issueAddress , lastOutputValue ? lastOutputValue : args.change);
-
+      args.tx.addOutput(metadata.issueAddress, lastOutputValue ? lastOutputValue : args.change);
 
       return { tx: args.tx, multisigOutputs: reedemScripts, coloredOutputIndexes: _.uniq(coloredOutputIndexes)}
-
     }
 
 
