@@ -33,7 +33,7 @@ var config = {
   mindustvalue: 600,
   mindustvaluemultisig: 700,
   feePerKb: 1000,
-  checkFinanaceValidty: true
+  checkFinanceValidity: true
 }
 
 

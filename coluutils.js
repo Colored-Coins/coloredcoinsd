@@ -84,7 +84,7 @@ module.exports = (function () {
 
                 console.log("checking unspent "  + unspent.txid + ":" + unspent.vout)
                 var keep = true;
-                if(config.checkFinanaceValidty) {
+                if (config.checkFinanceValidity) {
                   transactions[i].vout.some(function(vout, x){
                     if(vout.scriptPubKey && 
                     vout.scriptPubKey.asm && 
@@ -944,7 +944,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                 if (to.burn) {
                   assetList[to.assetId].addresses.push({ address: 'burn', amount: to.amount })
                 }
-                // generate a multisig adress, remeber to return the reedem scripts
+                // generate a multisig address, remember to return the redeem scripts
                 else if (!to.address && to.pubKeys && to.m) {
                     var multisig = generateMultisigAddress(to.pubKeys, to.m)
                     assetList[to.assetId].addresses.push({ address: multisig.address, amount: to.amount, reedemScript: multisig.reedemScript})

@@ -4,7 +4,8 @@ exports.models = {
         "required": ["version"],
         "properties": {
             "version": {
-                "type": "int32",
+                "type": "integer",
+                "format": "int32",
                 "description": "version of the rule system"
             },
             "fees": {
