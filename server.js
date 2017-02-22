@@ -56,7 +56,7 @@ App.initPolyfills = function() {
 }
 
 App.init = function(app) {
-  var whitelist = ['coloredcoins.org', 'colu.co'];
+  var whitelist = ['coloredcoins.org', 'colu.co', 'localhost'];
   var corsOptions = {
     origin: function (origin, callback){
       var originIsWhitelisted = whitelist.some(function (neddle) {
