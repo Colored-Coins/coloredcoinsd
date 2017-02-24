@@ -58,7 +58,7 @@ describe ('Api tests', function () {
       assert.equal(ccTx.aggregationPolicy, aggregationPolicy)
       assert.equal(ccTx.divisibility, divisibility)
       assert(body.assetId)
-      assert.deepEqual(body.coloredOutputIndexes, [0])
+      assert.deepEqual(body.coloredOutputIndexes, [0, 2]) // including change
       done();
     });
   });

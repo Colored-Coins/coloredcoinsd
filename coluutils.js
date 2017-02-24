@@ -361,6 +361,10 @@ data.tx.outs.forEach( function (txOut) {
         console.log('adding bitcoin change output with: ' + bitcoinChange)
         args.tx.addOutput(metadata.issueAddress, bitcoinChange) 
       }
+      if (coloredAmount > 0) {
+        // there's a colored change output
+        coloredOutputIndexes.push(tx.outs.length)
+      }
       console.log('adding change output with: ' + lastOutputValue)
       console.log('total inputs: ' + args.totalInputs.amount)
       console.log('total fee: ' + metadata.fee)
@@ -1136,6 +1140,9 @@ coluutils.requestParseTx = function requestParseTx(txid)
             if (numOfChanges === 2) {
               tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue - config.mindustvalue); 
               lastOutputValue = config.mindustvalue 
+            }
+            if (coloredChange) {
+              coloredOutputIndexes.push(tx.outs.length)
             }
             tx.addOutput(Array.isArray(metadata.from) ? metadata.from[0] : metadata.from, lastOutputValue);
             console.log('success')
