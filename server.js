@@ -56,14 +56,20 @@ App.initPolyfills = function() {
 }
 
 App.init = function(app) {
-  var whitelist = ['coloredcoins.org', 'colu.co', 'localhost'];
-  var corsOptions = {
-    origin: function (origin, callback){
-      var originIsWhitelisted = whitelist.some(function (neddle) {
-        return origin && origin.endsWith(neddle)
-      })
-      console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
-      callback(null, originIsWhitelisted)
+  var whitelist = config.corsWhitelist
+  console.log('whitelist =', JSON.stringify(whitelist))
+  var corsOptions
+  if (whitelist) {
+    whitelist = whitelist.split(',')
+    console.log('whitelist =', JSON.stringify(whitelist))
+    corsOptions = {
+      origin: function (origin, callback){
+        var originIsWhitelisted = whitelist.some(function (neddle) {
+          return origin && origin.endsWith(neddle)
+        })
+        console.log('checking whitelist: ' + originIsWhitelisted + ' for: ' + origin)
+        callback(null, originIsWhitelisted)
+      }
     }
   }
   

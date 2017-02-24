@@ -73,5 +73,6 @@ if (module_exists('./config-local')) {
   config.piwik.debug = process.env.PIWIK_DEBUG || false
   config.piwik.enabled = config.piwik.url && config.piwik.token && config.piwik.siteid
   config.secret = process.env.SECRET
+  config.corsWhitelist = process.env.CORS_WHITELIST || config.corsWhitelist // comma separated list
   module.exports = config
 }
