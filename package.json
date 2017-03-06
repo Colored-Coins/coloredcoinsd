@@ -13,7 +13,7 @@
     "bitcoinjs-lib": "~1.5.1",
     "bitcore": "^0.9.5",
     "bitcore-p2p": "^0.9.1",
-    "body-parser": ">=1.9.0",
+    "body-parser": "1.16.1",
     "bs58check": "^1.0.3",
     "cc-assetid-encoder": "^0.6.0",
     "cc-errors": "~0.0.7",
@@ -24,12 +24,12 @@
     "cors": "^2.7.1",
     "express": "4.10.4",
     "express-winston": "^2.1.0",
-    "lodash": ">=2.4.1",
-    "node-rest-client": ">=1.0.3",
+    "lodash": "2.4.1",
+    "node-rest-client": "2.5.0",
     "node-rsa": "^0.2.24",
     "on-finished": "^2.3.0",
     "piwik-tracker": "^0.1.2",
-    "q": ">=1.0.1",
+    "q": "1.4.1",
     "redis": "^0.12.1",
     "swagger-node-express": "git://github.com/Colored-Coins/swagger-node.git#2.0.3-fix",
     "swagger-validation": "~1.2",
@@ -37,7 +37,7 @@
   },
   "noAnalyze": true,
   "engines": {
-    "node": ">=0.6"
+    "node": ">=0.10"
   },
   "devDependencies": {
     "istanbul": "^0.3.20",
